@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { invalidJsonResponse, readJsonBody } from "@/lib/request";
 
 const addSchema = z.object({
   barcode: z.string().min(1),
@@ -17,7 +18,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: jobCardId } = await params;
-  const body = await request.json();
+  const body = await readJsonBody(request);
+  if (body === null) return invalidJsonResponse();
   const parsed = addSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { invalidJsonResponse, readJsonBody } from "@/lib/request";
 
 const createSchema = z.object({
   barcode: z.string().min(1),
@@ -20,10 +21,10 @@ export async function GET(request: NextRequest) {
     where: q
       ? {
           OR: [
-            { barcode: { contains: q } },
-            { name: { contains: q } },
-            { make: { contains: q } },
-            { category: { contains: q } },
+            { barcode: { contains: q, mode: "insensitive" } },
+            { name: { contains: q, mode: "insensitive" } },
+            { make: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
           ],
         }
       : undefined,
@@ -35,7 +36,8 @@ export async function GET(request: NextRequest) {
 /** Creates a new spare part, or if the barcode already exists, adds the given
  * quantity as new stock inward (recording an inventory transaction). */
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await readJsonBody(request);
+  if (body === null) return invalidJsonResponse();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { invalidJsonResponse, readJsonBody } from "@/lib/request";
 
 const genSchema = z.object({
   taxPercent: z.coerce.number().min(0).max(100).default(0),
@@ -50,8 +51,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: jobCardId } = await params;
-  const body = await request.json();
-  if (body.whatsappSent) {
+  const body = await readJsonBody(request);
+  if (body === null) return invalidJsonResponse();
+  if (typeof body === "object" && body !== null && "whatsappSent" in body && body.whatsappSent) {
     const bill = await prisma.bill.update({
       where: { jobCardId },
       data: { whatsappSentAt: new Date() },

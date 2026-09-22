@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { normalizePhone } from "@/lib/format";
+import { invalidJsonResponse, readJsonBody } from "@/lib/request";
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   const where = phone
     ? { phone: { contains: normalizePhone(phone) } }
     : q
-    ? { OR: [{ name: { contains: q } }, { phone: { contains: q } }] }
+    ? { OR: [{ name: { contains: q, mode: "insensitive" as const } }, { phone: { contains: q } }] }
     : undefined;
 
   const customers = await prisma.customer.findMany({
@@ -31,7 +32,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await readJsonBody(request);
+  if (body === null) return invalidJsonResponse();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });

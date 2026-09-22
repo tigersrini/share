@@ -17,10 +17,10 @@ export default async function InventoryPage({
     where: q
       ? {
           OR: [
-            { barcode: { contains: q } },
-            { name: { contains: q } },
-            { make: { contains: q } },
-            { category: { contains: q } },
+            { barcode: { contains: q, mode: "insensitive" } },
+            { name: { contains: q, mode: "insensitive" } },
+            { make: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
           ],
         }
       : undefined,

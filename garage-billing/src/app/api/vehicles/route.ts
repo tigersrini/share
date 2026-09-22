@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { invalidJsonResponse, readJsonBody } from "@/lib/request";
 
 const createSchema = z.object({
   customerId: z.string().min(1),
@@ -11,7 +12,8 @@ const createSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await readJsonBody(request);
+  if (body === null) return invalidJsonResponse();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
