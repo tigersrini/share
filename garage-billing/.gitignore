@@ -37,6 +37,9 @@ yarn-error.log*
 /prisma/*.db
 /prisma/*.db-journal
 
+# ad-hoc test scripts written by QA/dev sessions, not part of the app
+/scratch-*.js
+
 # vercel
 .vercel
 
