@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -18,6 +19,20 @@ const parts = [
 ];
 
 async function main() {
+  const adminEmail = (process.env.ADMIN_EMAIL ?? "admin@sparksgarage.com").toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD ?? "changeme123";
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: { email: adminEmail, name: "Garage Admin", passwordHash },
+  });
+  console.log(
+    `Admin login ready -> email: ${adminEmail}, password: ${
+      process.env.ADMIN_PASSWORD ? "(from ADMIN_PASSWORD env)" : adminPassword
+    }`
+  );
+
   for (const part of parts) {
     const created = await prisma.sparePart.upsert({
       where: { barcode: part.barcode },

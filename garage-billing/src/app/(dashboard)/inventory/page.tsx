@@ -50,7 +50,44 @@ export default async function InventoryPage({
         </div>
       )}
 
-      <Card className="overflow-x-auto p-0">
+      {/* Mobile: card list */}
+      <div className="space-y-2 sm:hidden">
+        {parts.map((p) => (
+          <Link key={p.id} href={`/inventory/${p.id}`}>
+            <Card className="active:bg-zinc-50 dark:active:bg-zinc-900/50">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="truncate font-medium text-zinc-900 dark:text-zinc-100">{p.name}</div>
+                  <div className="font-mono text-xs text-zinc-500 dark:text-zinc-400">{p.barcode}</div>
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    {p.make ?? "—"} {p.category ? `· ${p.category}` : ""}
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="font-semibold text-zinc-900 dark:text-zinc-100">{formatINR(p.sellingPrice)}</div>
+                  <div
+                    className={
+                      p.quantity <= p.lowStockAt
+                        ? "text-sm font-semibold text-red-600 dark:text-red-400"
+                        : "text-sm text-zinc-500 dark:text-zinc-400"
+                    }
+                  >
+                    Qty {p.quantity}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        ))}
+        {parts.length === 0 && (
+          <Card className="py-10 text-center text-zinc-500 dark:text-zinc-400">
+            No parts found. Scan a barcode to add your first item.
+          </Card>
+        )}
+      </div>
+
+      {/* Tablet / desktop: table */}
+      <Card className="hidden overflow-x-auto p-0 sm:block">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-zinc-200 text-left text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">

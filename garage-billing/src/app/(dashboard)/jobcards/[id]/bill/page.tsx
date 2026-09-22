@@ -62,26 +62,26 @@ export default async function BillPage({
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs uppercase text-zinc-500 dark:border-zinc-800">
                   <th className="py-2">Item</th>
-                  <th className="py-2 text-right">Qty</th>
-                  <th className="py-2 text-right">Price</th>
-                  <th className="py-2 text-right">Amount</th>
+                  <th className="py-2 pl-2 text-right">Qty</th>
+                  <th className="hidden py-2 pl-2 text-right sm:table-cell">Price</th>
+                  <th className="py-2 pl-2 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {jobCard.parts.map((p) => (
                   <tr key={p.id} className="border-b border-zinc-100 dark:border-zinc-900">
                     <td className="py-2">{p.sparePart.name}</td>
-                    <td className="py-2 text-right">{p.quantity}</td>
-                    <td className="py-2 text-right">{formatINR(p.priceAtSale)}</td>
-                    <td className="py-2 text-right">{formatINR(p.priceAtSale * p.quantity)}</td>
+                    <td className="py-2 pl-2 text-right">{p.quantity}</td>
+                    <td className="hidden py-2 pl-2 text-right sm:table-cell">{formatINR(p.priceAtSale)}</td>
+                    <td className="py-2 pl-2 text-right">{formatINR(p.priceAtSale * p.quantity)}</td>
                   </tr>
                 ))}
                 {jobCard.labors.map((l) => (
                   <tr key={l.id} className="border-b border-zinc-100 dark:border-zinc-900">
                     <td className="py-2">{l.description} <span className="text-xs text-zinc-500">(labor)</span></td>
-                    <td className="py-2 text-right">1</td>
-                    <td className="py-2 text-right">{formatINR(l.amount)}</td>
-                    <td className="py-2 text-right">{formatINR(l.amount)}</td>
+                    <td className="py-2 pl-2 text-right">1</td>
+                    <td className="hidden py-2 pl-2 text-right sm:table-cell">{formatINR(l.amount)}</td>
+                    <td className="py-2 pl-2 text-right">{formatINR(l.amount)}</td>
                   </tr>
                 ))}
               </tbody>

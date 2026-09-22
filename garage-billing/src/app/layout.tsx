@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Nav from "@/components/Nav";
 import SplashScreen from "@/components/SplashScreen";
 
 const geistSans = Geist({
@@ -19,6 +18,13 @@ export const metadata: Metadata = {
   description: "Inventory, job card and billing system for Sparks Racing and Garage",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#000000",
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -27,10 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-zinc-950">
         <SplashScreen />
-        <Nav />
-        <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );
