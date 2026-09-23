@@ -168,7 +168,6 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
 
         <Text style={styles.footer}>
           Thank you for servicing with Sparks Racing & Garage. This is a computer-generated invoice.
-          {"\n"}All prices are MRP, inclusive of applicable taxes.
         </Text>
       </Page>
     </Document>
