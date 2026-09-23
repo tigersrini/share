@@ -30,11 +30,10 @@ Built with Next.js (App Router), Prisma + PostgreSQL, and Tailwind CSS.
   tracked as Waiting → In Service → Ready for Pickup → Delivered.
 - **Billing** — generate the final bill from a job card's parts + labor,
   with optional tax % and discount, rendered as a properly formatted PDF
-  invoice. Share it to the customer over WhatsApp with one tap — on a
-  phone this uses the Web Share API to attach the actual PDF file into the
-  native share sheet (pick WhatsApp there); on desktop/unsupported
-  browsers it falls back to a `wa.me` link with a message plus a link to
-  view/download the PDF.
+  invoice. Send it over WhatsApp with one tap: the PDF downloads to the
+  device and WhatsApp opens directly on that customer's chat (via a
+  `wa.me` deep link) with the amount pre-filled — no searching their phone
+  number — ready for a single tap to attach the file that just downloaded.
 - **Staff & roles** — admins manage staff accounts (`/staff`): create,
   change role, deactivate, reset password. Any signed-in user can change
   their own password at `/account`.
@@ -114,15 +113,17 @@ the seed script or directly in the `User` table) can see anything.
   often — the inventory form always lets you type the details in manually
   when it does.
 - **WhatsApp sending** has no way to pre-attach a file through a `wa.me`
-  link (WhatsApp doesn't support that), so on phones we use the Web Share
-  API to open the native share sheet with the PDF already attached — the
-  user picks WhatsApp from there. That needs browser support for
-  `navigator.canShare({ files })` (most current mobile Chrome/Safari; not
-  desktop). The fallback opens WhatsApp with a text message linking to the
-  PDF instead. For fully automatic sending with zero taps, from your own
-  business number, wire up the
+  link (WhatsApp doesn't support that), and the Web Share API's native
+  share sheet can't target a specific contact either — it just hands off
+  to WhatsApp's own picker, leaving staff to search the customer's number
+  by hand. So instead we download the PDF straight to the device, then
+  open a `wa.me/<phone>` link, which *does* jump directly to that exact
+  customer's chat with the message pre-filled; the just-downloaded PDF is
+  then one 📎 tap away to attach. It's two taps total (open chat, attach
+  file) instead of a manual contact search. For fully automatic sending
+  with zero taps, from your own business number, wire up the
   [WhatsApp Business Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api)
-  or a provider like Twilio in `WhatsAppSendButton.tsx`.
+  or a provider like Twilio in `src/lib/shareFile.ts`.
 - **OEM badges** are generated color/initials chips, not real brand
   logos — we don't have licensed image assets for motorcycle OEM
   trademarks. Swap `src/lib/oemBadges.ts` for real logo images if you

@@ -17,6 +17,8 @@ const createSchema = z.object({
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim();
+  const limitParam = request.nextUrl.searchParams.get("limit");
+  const limit = limitParam ? Math.min(50, Math.max(1, Number(limitParam) || 0)) : undefined;
   const parts = await prisma.sparePart.findMany({
     where: q
       ? {
@@ -29,6 +31,7 @@ export async function GET(request: NextRequest) {
         }
       : undefined,
     orderBy: { name: "asc" },
+    take: limit,
   });
   return NextResponse.json(parts);
 }

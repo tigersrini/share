@@ -47,7 +47,7 @@ export default function WhatsAppSendButton({
   return (
     <div>
       <Button onClick={handleClick} disabled={sending} className="w-full">
-        {sending ? "Preparing PDF…" : `Send PDF bill to ${customerName} via WhatsApp`}
+        {sending ? "Preparing PDF…" : `Open WhatsApp chat with ${customerName}`}
       </Button>
       <a
         href={`/api/jobcards/${jobCardId}/bill/pdf`}
@@ -63,10 +63,10 @@ export default function WhatsAppSendButton({
         </p>
       )}
       <p className="mt-2 text-xs text-zinc-400">
-        On a phone, this opens your share sheet with the PDF attached — pick WhatsApp there. On
-        desktop (or if file-sharing isn&apos;t supported), it opens WhatsApp with a link to the PDF
-        instead. For fully automatic sending with no tap at all, connect the WhatsApp Business
-        Cloud API (see README).
+        This downloads the PDF to this device, then opens WhatsApp already on{" "}
+        {customerName}&apos;s chat (no searching their number) with the bill amount pre-filled —
+        tap 📎 there to attach the PDF that just downloaded. For fully automatic sending with no
+        tap at all, connect the WhatsApp Business Cloud API (see README).
       </p>
     </div>
   );
