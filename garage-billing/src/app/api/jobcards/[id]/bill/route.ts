@@ -27,11 +27,14 @@ export async function POST(
   });
   if (!jobCard) return NextResponse.json({ error: "Job card not found" }, { status: 404 });
 
+  // Part/labor prices are MRP — already inclusive of tax — so tax is never
+  // added on top here. taxPercent/taxAmount are purely an informational GST
+  // breakdown (reverse-calculated out of the inclusive total), shown on the
+  // invoice for reference; they never change what the customer is charged.
   const partsTotal = jobCard.parts.reduce((sum, p) => sum + p.priceAtSale * p.quantity, 0);
   const laborTotal = jobCard.labors.reduce((sum, l) => sum + l.amount, 0);
-  const subtotal = partsTotal + laborTotal - discount;
-  const taxAmount = (subtotal * taxPercent) / 100;
-  const grandTotal = Math.max(0, subtotal + taxAmount);
+  const grandTotal = Math.max(0, partsTotal + laborTotal - discount);
+  const taxAmount = taxPercent > 0 ? grandTotal - grandTotal / (1 + taxPercent / 100) : 0;
 
   const bill = await prisma.$transaction(async (tx) => {
     const saved = await tx.bill.upsert({

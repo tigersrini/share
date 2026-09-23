@@ -7,6 +7,8 @@ const createSchema = z.object({
   customerId: z.string().min(1),
   vehicleId: z.string().min(1),
   complaints: z.string().min(1),
+  notes: z.string().optional(),
+  estimatedAmount: z.coerce.number().min(0).optional(),
   odometer: z.coerce.number().int().min(0).optional(),
 });
 

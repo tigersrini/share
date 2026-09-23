@@ -62,10 +62,25 @@ export default async function JobCardDetailPage({
       <Card className="mb-4">
         <h2 className="mb-1 text-sm font-semibold">Complaint</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">{jobCard.complaints}</p>
+        {jobCard.notes && (
+          <>
+            <h2 className="mb-1 mt-3 text-sm font-semibold">Notes</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{jobCard.notes}</p>
+          </>
+        )}
         <div className="mt-2 text-xs text-zinc-500">
           Opened {formatDate(jobCard.createdAt)}
           {jobCard.odometer ? ` · Odometer: ${jobCard.odometer} km` : ""}
+          {jobCard.estimatedAmount != null ? ` · Estimated: ${formatINR(jobCard.estimatedAmount)}` : ""}
         </div>
+        <a
+          href={`/api/jobcards/${jobCard.id}/acknowledgement/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block text-xs font-medium text-orange-600 hover:underline"
+        >
+          View acknowledgement PDF
+        </a>
       </Card>
 
       <Card className="mb-4">

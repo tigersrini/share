@@ -97,6 +97,8 @@ model JobCard {
   vehicleId   String
   vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
   complaints  String
+  notes       String? // mechanic's own remarks, entered when the job card is opened
+  estimatedAmount Float?
   odometer    Int?
   status      JobCardStatus @default(OPEN)
   createdAt   DateTime      @default(now())

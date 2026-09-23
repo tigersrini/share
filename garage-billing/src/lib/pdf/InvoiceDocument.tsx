@@ -155,20 +155,20 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
               <Text>-{formatINR(data.discount)}</Text>
             </View>
           )}
-          {data.taxAmount > 0 && (
-            <View style={styles.totalsRow}>
-              <Text style={styles.totalsLabel}>Tax ({data.taxPercent}%)</Text>
-              <Text>{formatINR(data.taxAmount)}</Text>
-            </View>
-          )}
           <View style={styles.grandTotalRow}>
             <Text style={styles.grandTotalLabel}>Grand Total</Text>
             <Text style={styles.grandTotalValue}>{formatINR(data.grandTotal)}</Text>
           </View>
+          {data.taxAmount > 0 && (
+            <Text style={{ fontSize: 8, color: "#a1a1aa", marginTop: 4, textAlign: "right" }}>
+              Price is MRP, inclusive of GST @{data.taxPercent}% ({formatINR(data.taxAmount)})
+            </Text>
+          )}
         </View>
 
         <Text style={styles.footer}>
           Thank you for servicing with Sparks Racing & Garage. This is a computer-generated invoice.
+          {"\n"}All prices are MRP, inclusive of applicable taxes.
         </Text>
       </Page>
     </Document>

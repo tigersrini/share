@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui";
-import { buildWhatsAppLink } from "@/lib/format";
+import { shareOrOpenWhatsApp } from "@/lib/shareFile";
 
 interface Props {
   jobCardId: string;
@@ -23,56 +23,25 @@ export default function WhatsAppSendButton({
 }: Props) {
   const [sentAt, setSentAt] = useState(alreadySentAt);
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const pdfUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/api/jobcards/${jobCardId}/bill/pdf`;
-  const shortMessage = `*Sparks Racing & Garage*\nHi ${customerName}, your bill for ${vehicle} is ready — total *${grandTotal}*.`;
-
-  async function markSent() {
+  async function handleClick() {
+    setSending(true);
     try {
+      await shareOrOpenWhatsApp({
+        pdfUrl: `/api/jobcards/${jobCardId}/bill/pdf`,
+        fileName: `invoice-${jobCardId.slice(-8)}.pdf`,
+        phone,
+        message: `*Sparks Racing & Garage*\nHi ${customerName}, your bill for ${vehicle} is ready — total *${grandTotal}*.`,
+      });
       await fetch(`/api/jobcards/${jobCardId}/bill`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ whatsappSent: true }),
       });
       setSentAt(new Date().toISOString());
-    } catch {
-      // non-fatal
-    }
-  }
-
-  async function handleClick() {
-    setError(null);
-    setSending(true);
-    try {
-      // Prefer sharing the actual PDF file (works on most mobile browsers —
-      // opens the native share sheet with WhatsApp as one of the targets,
-      // the PDF attaches directly instead of just a text message).
-      const res = await fetch(`/api/jobcards/${jobCardId}/bill/pdf`);
-      if (res.ok) {
-        const blob = await res.blob();
-        const file = new File([blob], `invoice-${jobCardId.slice(-8)}.pdf`, { type: "application/pdf" });
-        const nav = navigator as Navigator & {
-          share?: (data: ShareData) => Promise<void>;
-          canShare?: (data: ShareData) => boolean;
-        };
-        if (nav.canShare?.({ files: [file] }) && nav.share) {
-          await nav.share({ files: [file], title: "Invoice", text: shortMessage });
-          await markSent();
-          return;
-        }
-      }
-    } catch {
-      // fall through to the wa.me fallback below
     } finally {
       setSending(false);
     }
-
-    // Fallback (desktop / unsupported browsers): open WhatsApp with a text
-    // message that links to the PDF for the customer to view/download.
-    const link = buildWhatsAppLink(phone, `${shortMessage}\n\nView/download your invoice: ${pdfUrl}`);
-    window.open(link, "_blank", "noopener,noreferrer");
-    await markSent();
   }
 
   return (
@@ -93,7 +62,6 @@ export default function WhatsAppSendButton({
           Sent this bill at {new Date(sentAt).toLocaleString("en-IN")}.
         </p>
       )}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       <p className="mt-2 text-xs text-zinc-400">
         On a phone, this opens your share sheet with the PDF attached — pick WhatsApp there. On
         desktop (or if file-sharing isn&apos;t supported), it opens WhatsApp with a link to the PDF

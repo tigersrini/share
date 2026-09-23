@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 import MakeModelFields from "@/components/MakeModelFields";
+import { shareOrOpenWhatsApp } from "@/lib/shareFile";
 
 interface Vehicle {
   id: string;
@@ -32,9 +33,12 @@ export default function NewJobCardFlow() {
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ make: "", model: "", regNumber: "" });
   const [complaints, setComplaints] = useState("");
+  const [notes, setNotes] = useState("");
+  const [estimatedAmount, setEstimatedAmount] = useState("");
   const [odometer, setOdometer] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingStep, setSavingStep] = useState<"" | "creating" | "sending">("");
 
   useEffect(() => {
     if (!presetCustomerId) return;
@@ -84,6 +88,7 @@ export default function NewJobCardFlow() {
       return;
     }
     setSaving(true);
+    setSavingStep("creating");
     try {
       const res = await fetch("/api/jobcards", {
         method: "POST",
@@ -92,15 +97,34 @@ export default function NewJobCardFlow() {
           customerId: customer.id,
           vehicleId,
           complaints,
+          notes: notes || undefined,
+          estimatedAmount: estimatedAmount || undefined,
           odometer: odometer || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ? JSON.stringify(data.error) : "Failed to create job card");
+
+      setSavingStep("sending");
+      try {
+        await shareOrOpenWhatsApp({
+          pdfUrl: `/api/jobcards/${data.id}/acknowledgement/pdf`,
+          fileName: `jobcard-${data.id.slice(-8)}-receipt.pdf`,
+          phone: customer.phone,
+          message: `*Sparks Racing & Garage*\nHi ${customer.name}, we've received your ${data.vehicle?.make ?? ""} ${
+            data.vehicle?.model ?? ""
+          } for service. Here's your job card acknowledgement.`,
+        });
+      } catch {
+        // non-fatal: the job card is created either way, sending the
+        // acknowledgement is a best-effort convenience
+      }
+
       router.push(`/jobcards/${data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create job card");
       setSaving(false);
+      setSavingStep("");
     }
   }
 
@@ -229,14 +253,39 @@ export default function NewJobCardFlow() {
         </div>
 
         <div>
-          <Label>Odometer (km, optional)</Label>
-          <Input type="number" min="0" value={odometer} onChange={(e) => setOdometer(e.target.value)} />
+          <Label>Your comments / notes (optional)</Label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder="e.g. Customer says noise started last week, asked to check chain tension too"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>Estimated cost (₹, optional)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={estimatedAmount}
+              onChange={(e) => setEstimatedAmount(e.target.value)}
+              placeholder="e.g. 1500"
+            />
+          </div>
+          <div>
+            <Label>Odometer (km, optional)</Label>
+            <Input type="number" min="0" value={odometer} onChange={(e) => setOdometer(e.target.value)} />
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <Button type="submit" disabled={saving}>
-          {saving ? "Creating…" : "Open Job Card"}
+          {savingStep === "creating" && "Creating…"}
+          {savingStep === "sending" && "Sending acknowledgement…"}
+          {!savingStep && "Open Job Card"}
         </Button>
       </form>
     </Card>

@@ -14,10 +14,11 @@ export async function proxy(request: NextRequest) {
     pathname === "/favicon.ico" ||
     pathname.startsWith("/icon") ||
     pathname === "/sparks-logo.jpg" ||
-    // Bill PDFs are shared with customers via a WhatsApp link — the job
-    // card id in the path is an unguessable cuid, so this is safe to serve
-    // without requiring the customer to have a staff login.
-    /^\/api\/jobcards\/[^/]+\/bill\/pdf$/.test(pathname);
+    // Bill/acknowledgement PDFs are shared with customers via a WhatsApp
+    // link — the job card id in the path is an unguessable cuid, so this is
+    // safe to serve without requiring the customer to have a staff login.
+    /^\/api\/jobcards\/[^/]+\/bill\/pdf$/.test(pathname) ||
+    /^\/api\/jobcards\/[^/]+\/acknowledgement\/pdf$/.test(pathname);
 
   if (isPublic) return NextResponse.next();
 
