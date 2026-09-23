@@ -25,11 +25,25 @@ Built with Next.js (App Router), Prisma + PostgreSQL, and Tailwind CSS.
   customer + vehicle with their complaint. As mechanics work, they scan a
   part's barcode to add it straight to that job card — inventory is
   deducted automatically and a running total builds up. Labor/service
-  charges can be added too.
+  charges can be added too, along with vehicle photos (resized/compressed
+  in the browser before upload, stored in Vercel Blob). Progression is
+  tracked as Waiting → In Service → Ready for Pickup → Delivered.
 - **Billing** — generate the final bill from a job card's parts + labor,
-  with optional tax % and discount. Send it to the customer over WhatsApp
-  with one tap (opens WhatsApp with the itemized bill pre-filled via a
-  `wa.me` deep link).
+  with optional tax % and discount, rendered as a properly formatted PDF
+  invoice. Share it to the customer over WhatsApp with one tap — on a
+  phone this uses the Web Share API to attach the actual PDF file into the
+  native share sheet (pick WhatsApp there); on desktop/unsupported
+  browsers it falls back to a `wa.me` link with a message plus a link to
+  view/download the PDF.
+- **Staff & roles** — admins manage staff accounts (`/staff`): create,
+  change role, deactivate, reset password. Any signed-in user can change
+  their own password at `/account`.
+- **Reports** — revenue by day, best-selling parts, and a low-stock list
+  with CSV export, at `/reports`.
+- **OEM make/model picker** — Make/Model fields show tappable color badges
+  for common Indian motorcycle OEMs, ranked by this garage's own real usage
+  first (falls back to a static reference list). Still plain text
+  underneath, so a rare/custom make can always just be typed.
 - **Mobile-first** — a fixed bottom tab bar and full-width touch targets on
   phones, a full top nav on tablets/desktop, and card-based lists (instead
   of wide tables) on small screens. See [Mobile & tablet](#mobile--tablet).
@@ -69,6 +83,11 @@ works:
 Generate a real `AUTH_SECRET` for production with `openssl rand -base64
 32` — this signs the login session cookie, so treat it like a password.
 
+Vehicle photos need a Vercel Blob store: create one and connect it to the
+project (Vercel dashboard → Storage → Create Database → Blob), which
+auto-injects `BLOB_READ_WRITE_TOKEN`. Without it, photo uploads will fail
+but everything else works fine.
+
 Because auth is required on every route (via `src/proxy.ts`), the app is
 safe to put on the public internet — only people with a login (created via
 the seed script or directly in the `User` table) can see anything.
@@ -94,13 +113,20 @@ the seed script or directly in the `User` table) can see anything.
   rarely listed in general product databases, so this is expected to miss
   often — the inventory form always lets you type the details in manually
   when it does.
-- **WhatsApp sending** uses a `wa.me` deep link with the bill pre-filled as
-  the message text — it opens WhatsApp (web or app) for you to hit send,
-  no API keys required. For fully automatic sending (no manual tap, sent
-  from your own business number), wire up the
+- **WhatsApp sending** has no way to pre-attach a file through a `wa.me`
+  link (WhatsApp doesn't support that), so on phones we use the Web Share
+  API to open the native share sheet with the PDF already attached — the
+  user picks WhatsApp from there. That needs browser support for
+  `navigator.canShare({ files })` (most current mobile Chrome/Safari; not
+  desktop). The fallback opens WhatsApp with a text message linking to the
+  PDF instead. For fully automatic sending with zero taps, from your own
+  business number, wire up the
   [WhatsApp Business Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api)
-  or a provider like Twilio in `WhatsAppSendButton.tsx` /
-  `src/app/api/jobcards/[id]/bill/route.ts`.
+  or a provider like Twilio in `WhatsAppSendButton.tsx`.
+- **OEM badges** are generated color/initials chips, not real brand
+  logos — we don't have licensed image assets for motorcycle OEM
+  trademarks. Swap `src/lib/oemBadges.ts` for real logo images if you
+  license them.
 - **Barcode scanning** uses the device camera via `html5-qrcode` in the
   browser (works for 1D barcodes and QR codes). It requires camera
   permission and HTTPS (or localhost) to work; manual barcode entry is

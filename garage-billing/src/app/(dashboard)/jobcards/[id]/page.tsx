@@ -8,15 +8,10 @@ import AddLaborForm from "./AddLaborForm";
 import StatusControl from "./StatusControl";
 import RemovePartButton from "./RemovePartButton";
 import RemoveLaborButton from "./RemoveLaborButton";
+import VehiclePhotos from "./VehiclePhotos";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONE, type JobStatus } from "@/lib/jobStatus";
 
 export const dynamic = "force-dynamic";
-
-const statusTone: Record<string, "zinc" | "orange" | "green" | "blue"> = {
-  OPEN: "blue",
-  IN_PROGRESS: "orange",
-  COMPLETED: "green",
-  BILLED: "zinc",
-};
 
 export default async function JobCardDetailPage({
   params,
@@ -31,6 +26,7 @@ export default async function JobCardDetailPage({
       vehicle: true,
       parts: { include: { sparePart: true }, orderBy: { createdAt: "asc" } },
       labors: { orderBy: { createdAt: "asc" } },
+      images: { orderBy: { createdAt: "desc" } },
       bill: true,
     },
   });
@@ -56,7 +52,9 @@ export default async function JobCardDetailPage({
           {jobCard.vehicle.make} {jobCard.vehicle.model} · {jobCard.vehicle.regNumber}
         </PageTitle>
         <div className="flex items-center gap-2">
-          <Badge tone={statusTone[jobCard.status]}>{jobCard.status.replace("_", " ")}</Badge>
+          <Badge tone={JOB_STATUS_TONE[jobCard.status as JobStatus]}>
+            {JOB_STATUS_LABELS[jobCard.status as JobStatus]}
+          </Badge>
           {!locked && <StatusControl jobCardId={jobCard.id} currentStatus={jobCard.status} />}
         </div>
       </div>
@@ -68,6 +66,11 @@ export default async function JobCardDetailPage({
           Opened {formatDate(jobCard.createdAt)}
           {jobCard.odometer ? ` · Odometer: ${jobCard.odometer} km` : ""}
         </div>
+      </Card>
+
+      <Card className="mb-4">
+        <h2 className="mb-3 text-sm font-semibold">Vehicle photos</h2>
+        <VehiclePhotos jobCardId={jobCard.id} photos={jobCard.images} locked={locked} />
       </Card>
 
       <Card className="mb-4">

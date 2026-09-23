@@ -117,9 +117,7 @@ export default async function BillPage({
               phone={jobCard.customer.phone}
               customerName={jobCard.customer.name}
               vehicle={`${jobCard.vehicle.make} ${jobCard.vehicle.model} (${jobCard.vehicle.regNumber})`}
-              parts={jobCard.parts.map((p) => ({ name: p.sparePart.name, qty: p.quantity, amount: p.priceAtSale * p.quantity }))}
-              labors={jobCard.labors.map((l) => ({ description: l.description, amount: l.amount }))}
-              grandTotal={jobCard.bill.grandTotal}
+              grandTotal={formatINR(jobCard.bill.grandTotal)}
               alreadySentAt={jobCard.bill.whatsappSentAt ? jobCard.bill.whatsappSentAt.toString() : null}
             />
           </Card>

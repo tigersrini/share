@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Select } from "@/components/ui";
+import { JOB_STATUS_LABELS } from "@/lib/jobStatus";
 
 const options = ["OPEN", "IN_PROGRESS", "COMPLETED"] as const;
 
@@ -39,7 +40,7 @@ export default function StatusControl({
     >
       {options.map((o) => (
         <option key={o} value={o}>
-          {o.replace("_", " ")}
+          {JOB_STATUS_LABELS[o]}
         </option>
       ))}
     </Select>

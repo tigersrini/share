@@ -6,15 +6,9 @@ import { formatDate, formatINR } from "@/lib/format";
 import AddVehicleForm from "./AddVehicleForm";
 import EditCustomerForm from "./EditCustomerForm";
 import VehicleList from "./VehicleList";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONE, type JobStatus } from "@/lib/jobStatus";
 
 export const dynamic = "force-dynamic";
-
-const statusTone: Record<string, "zinc" | "orange" | "green" | "blue"> = {
-  OPEN: "blue",
-  IN_PROGRESS: "orange",
-  COMPLETED: "green",
-  BILLED: "zinc",
-};
 
 export default async function CustomerDetailPage({
   params,
@@ -98,7 +92,7 @@ export default async function CustomerDetailPage({
                 </div>
                 <div className="flex items-center gap-3">
                   {jc.bill && <span className="text-xs">{formatINR(jc.bill.grandTotal)}</span>}
-                  <Badge tone={statusTone[jc.status]}>{jc.status.replace("_", " ")}</Badge>
+                  <Badge tone={JOB_STATUS_TONE[jc.status as JobStatus]}>{JOB_STATUS_LABELS[jc.status as JobStatus]}</Badge>
                   <span className="text-xs text-zinc-500">{formatDate(jc.createdAt)}</span>
                 </div>
               </Link>
