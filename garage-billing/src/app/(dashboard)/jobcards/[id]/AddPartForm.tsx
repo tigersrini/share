@@ -154,7 +154,7 @@ export default function AddPartForm({ jobCardId }: { jobCardId: string }) {
           placeholder="Type a part name, e.g. brake pad"
         />
         {showResults && nameQuery.trim().length >= 2 && (
-          <div className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="absolute z-40 mt-1 max-h-64 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
             {searching && <div className="px-3 py-2 text-xs text-zinc-500">Searching…</div>}
             {!searching && results.length === 0 && (
               <div className="px-3 py-2 text-xs text-zinc-500">No matching parts in inventory.</div>
