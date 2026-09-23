@@ -35,7 +35,7 @@ export default function GenerateBillForm({ jobCardId }: { jobCardId: string }) {
     <form onSubmit={handleGenerate} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Tax (%)</Label>
+          <Label>GST rate for breakdown (%)</Label>
           <Input type="number" min="0" max="100" step="0.01" value={taxPercent} onChange={(e) => setTaxPercent(e.target.value)} />
         </div>
         <div>
@@ -43,6 +43,11 @@ export default function GenerateBillForm({ jobCardId }: { jobCardId: string }) {
           <Input type="number" min="0" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} />
         </div>
       </div>
+      <p className="text-xs text-zinc-500">
+        Part and labor prices are MRP — already inclusive of tax. The GST rate here doesn&apos;t add
+        anything to the total; it just shows the tax portion already included in the price on the
+        invoice.
+      </p>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={saving}>
         {saving ? "Generating…" : "Generate final bill"}

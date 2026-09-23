@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge, Card, PageTitle } from "@/components/ui";
 import { formatDate, formatINR } from "@/lib/format";
+import { JOB_STATUS_LABELS, type JobStatus } from "@/lib/jobStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ export default async function Dashboard() {
                   <span>
                     {jc.vehicle.make} {jc.vehicle.model} · {jc.vehicle.regNumber}
                   </span>
-                  <Badge>{jc.status.replace("_", " ")}</Badge>
+                  <Badge>{JOB_STATUS_LABELS[jc.status as JobStatus]}</Badge>
                 </Link>
               </li>
             ))}

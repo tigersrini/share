@@ -12,10 +12,13 @@ function getSecretKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
+export type UserRole = "ADMIN" | "STAFF";
+
 export interface SessionPayload {
   userId: string;
   email: string;
   name: string;
+  role: UserRole;
 }
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
@@ -29,10 +32,15 @@ export async function createSessionToken(payload: SessionPayload): Promise<strin
 export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
-    if (typeof payload.userId !== "string" || typeof payload.email !== "string" || typeof payload.name !== "string") {
+    if (
+      typeof payload.userId !== "string" ||
+      typeof payload.email !== "string" ||
+      typeof payload.name !== "string" ||
+      (payload.role !== "ADMIN" && payload.role !== "STAFF")
+    ) {
       return null;
     }
-    return { userId: payload.userId, email: payload.email, name: payload.name };
+    return { userId: payload.userId, email: payload.email, name: payload.name, role: payload.role };
   } catch {
     return null;
   }
@@ -44,6 +52,14 @@ export async function getSession(): Promise<SessionPayload | null> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);
+}
+
+/** Reads the session and confirms the caller is an ADMIN. Returns null if not
+ * logged in or not an admin, so route handlers can 401/403 accordingly. */
+export async function requireAdmin(): Promise<SessionPayload | null> {
+  const session = await getSession();
+  if (!session || session.role !== "ADMIN") return null;
+  return session;
 }
 
 export const sessionCookieOptions = {

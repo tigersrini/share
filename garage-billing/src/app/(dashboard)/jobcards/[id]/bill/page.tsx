@@ -39,7 +39,8 @@ export default async function BillPage({
         <Card>
           <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
             Parts total {formatINR(partsTotal)} + labor {formatINR(laborTotal)} ={" "}
-            <strong>{formatINR(partsTotal + laborTotal)}</strong> before tax/discount.
+            <strong>{formatINR(partsTotal + laborTotal)}</strong> (MRP, tax-inclusive) before
+            discount.
           </p>
           <GenerateBillForm jobCardId={jobCard.id} />
         </Card>
@@ -98,16 +99,16 @@ export default async function BillPage({
                   <span>-{formatINR(jobCard.bill.discount)}</span>
                 </div>
               )}
-              {jobCard.bill.taxAmount > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Tax ({jobCard.bill.taxPercent}%)</span>
-                  <span>{formatINR(jobCard.bill.taxAmount)}</span>
-                </div>
-              )}
               <div className="flex justify-between border-t border-zinc-200 pt-2 text-lg font-bold dark:border-zinc-800">
                 <span>Grand Total</span>
                 <span>{formatINR(jobCard.bill.grandTotal)}</span>
               </div>
+              {jobCard.bill.taxAmount > 0 && (
+                <p className="pt-1 text-xs text-zinc-400">
+                  Price is MRP, inclusive of GST @{jobCard.bill.taxPercent}% ({formatINR(jobCard.bill.taxAmount)}
+                  ) — not an additional charge.
+                </p>
+              )}
             </div>
           </Card>
 
@@ -117,9 +118,7 @@ export default async function BillPage({
               phone={jobCard.customer.phone}
               customerName={jobCard.customer.name}
               vehicle={`${jobCard.vehicle.make} ${jobCard.vehicle.model} (${jobCard.vehicle.regNumber})`}
-              parts={jobCard.parts.map((p) => ({ name: p.sparePart.name, qty: p.quantity, amount: p.priceAtSale * p.quantity }))}
-              labors={jobCard.labors.map((l) => ({ description: l.description, amount: l.amount }))}
-              grandTotal={jobCard.bill.grandTotal}
+              grandTotal={formatINR(jobCard.bill.grandTotal)}
               alreadySentAt={jobCard.bill.whatsappSentAt ? jobCard.bill.whatsappSentAt.toString() : null}
             />
           </Card>

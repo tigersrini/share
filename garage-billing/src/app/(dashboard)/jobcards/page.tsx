@@ -2,15 +2,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge, Card, PageTitle } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONE } from "@/lib/jobStatus";
 
 export const dynamic = "force-dynamic";
-
-const statusTone: Record<string, "zinc" | "orange" | "green" | "blue"> = {
-  OPEN: "blue",
-  IN_PROGRESS: "orange",
-  COMPLETED: "green",
-  BILLED: "zinc",
-};
 
 export default async function JobCardsPage() {
   const jobCards = await prisma.jobCard.findMany({
@@ -20,9 +14,9 @@ export default async function JobCardsPage() {
   });
 
   const columns: { status: "OPEN" | "IN_PROGRESS" | "COMPLETED"; label: string }[] = [
-    { status: "OPEN", label: "Open" },
-    { status: "IN_PROGRESS", label: "In Progress" },
-    { status: "COMPLETED", label: "Completed — ready to bill" },
+    { status: "OPEN", label: JOB_STATUS_LABELS.OPEN },
+    { status: "IN_PROGRESS", label: JOB_STATUS_LABELS.IN_PROGRESS },
+    { status: "COMPLETED", label: `${JOB_STATUS_LABELS.COMPLETED} — ready to bill` },
   ];
 
   return (
@@ -45,7 +39,7 @@ export default async function JobCardsPage() {
                         <span className="font-medium">
                           {jc.vehicle.make} {jc.vehicle.model}
                         </span>
-                        <Badge tone={statusTone[jc.status]}>{jc.vehicle.regNumber}</Badge>
+                        <Badge tone={JOB_STATUS_TONE[jc.status as keyof typeof JOB_STATUS_TONE]}>{jc.vehicle.regNumber}</Badge>
                       </div>
                       <div className="text-xs text-zinc-500">{jc.customer.name} · {jc.customer.phone}</div>
                       <p className="mt-2 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{jc.complaints}</p>

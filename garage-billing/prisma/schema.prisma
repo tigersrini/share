@@ -7,11 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  STAFF
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String
   passwordHash String
+  role         Role     @default(STAFF)
+  active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 }
 
@@ -90,6 +97,8 @@ model JobCard {
   vehicleId   String
   vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
   complaints  String
+  notes       String? // mechanic's own remarks, entered when the job card is opened
+  estimatedAmount Float?
   odometer    Int?
   status      JobCardStatus @default(OPEN)
   createdAt   DateTime      @default(now())
@@ -98,7 +107,16 @@ model JobCard {
   parts       JobCardPart[]
   labors      JobCardLabor[]
   txns        InventoryTxn[]
+  images      JobCardImage[]
   bill        Bill?
+}
+
+model JobCardImage {
+  id        String   @id @default(cuid())
+  jobCardId String
+  jobCard   JobCard  @relation(fields: [jobCardId], references: [id])
+  url       String
+  createdAt DateTime @default(now())
 }
 
 model JobCardPart {

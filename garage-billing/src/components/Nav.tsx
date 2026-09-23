@@ -12,12 +12,14 @@ const links = [
   { href: "/jobcards", label: "Job Cards", icon: IconClipboard },
 ];
 
+const desktopExtraLinks = [{ href: "/reports", label: "Reports" }];
+
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Nav({ userName }: { userName?: string }) {
+export default function Nav({ userName, isAdmin }: { userName?: string; isAdmin?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,6 +70,19 @@ export default function Nav({ userName }: { userName?: string }) {
                 {l.label}
               </Link>
             ))}
+            {desktopExtraLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`shrink-0 whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium md:px-3 ${
+                  isActive(pathname, l.href)
+                    ? "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                    : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
             <Link
               href="/jobcards/new"
               className="ml-1 shrink-0 whitespace-nowrap rounded-md bg-orange-600 px-2 py-2 text-sm font-semibold text-white hover:bg-orange-700 md:px-3"
@@ -75,14 +90,30 @@ export default function Nav({ userName }: { userName?: string }) {
               + New Job Card
             </Link>
             {userName && (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="ml-1 shrink-0 whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-zinc-500 hover:bg-zinc-100 md:ml-2 md:px-3 dark:text-zinc-400 dark:hover:bg-zinc-900"
-                title={`Signed in as ${userName}`}
-              >
-                Log out
-              </button>
+              <>
+                {isAdmin && (
+                  <Link
+                    href="/staff"
+                    className="ml-1 hidden shrink-0 whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-zinc-500 hover:bg-zinc-100 md:ml-2 md:block md:px-3 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                  >
+                    Staff
+                  </Link>
+                )}
+                <Link
+                  href="/account"
+                  className="hidden shrink-0 whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-zinc-500 hover:bg-zinc-100 md:block md:px-3 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                >
+                  Account
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="shrink-0 whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-zinc-500 hover:bg-zinc-100 md:px-3 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                  title={`Signed in as ${userName}`}
+                >
+                  Log out
+                </button>
+              </>
             )}
           </nav>
 
@@ -105,9 +136,32 @@ export default function Nav({ userName }: { userName?: string }) {
 
         {/* Mobile dropdown menu (user info + logout only; primary nav is the bottom tab bar) */}
         {menuOpen && (
-          <div className="border-t border-zinc-200 bg-white px-4 py-3 sm:hidden dark:border-zinc-800 dark:bg-black">
+          <div className="space-y-1 border-t border-zinc-200 bg-white px-4 py-3 sm:hidden dark:border-zinc-800 dark:bg-black">
             {userName && (
               <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">Signed in as {userName}</p>
+            )}
+            <Link
+              href="/reports"
+              onClick={() => setMenuOpen(false)}
+              className="block w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900"
+            >
+              Reports
+            </Link>
+            <Link
+              href="/account"
+              onClick={() => setMenuOpen(false)}
+              className="block w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900"
+            >
+              My account
+            </Link>
+            {isAdmin && (
+              <Link
+                href="/staff"
+                onClick={() => setMenuOpen(false)}
+                className="block w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900"
+              >
+                Staff accounts
+              </Link>
             )}
             <button
               type="button"

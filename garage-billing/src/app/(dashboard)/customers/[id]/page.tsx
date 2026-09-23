@@ -4,15 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { Badge, Button, Card, PageTitle } from "@/components/ui";
 import { formatDate, formatINR } from "@/lib/format";
 import AddVehicleForm from "./AddVehicleForm";
+import EditCustomerForm from "./EditCustomerForm";
+import VehicleList from "./VehicleList";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONE, type JobStatus } from "@/lib/jobStatus";
 
 export const dynamic = "force-dynamic";
-
-const statusTone: Record<string, "zinc" | "orange" | "green" | "blue"> = {
-  OPEN: "blue",
-  IN_PROGRESS: "orange",
-  COMPLETED: "green",
-  BILLED: "zinc",
-};
 
 export default async function CustomerDetailPage({
   params,
@@ -32,6 +28,13 @@ export default async function CustomerDetailPage({
   });
   if (!customer) notFound();
 
+  const vehicleJobCardCounts = Object.fromEntries(
+    customer.vehicles.map((v) => [
+      v.id,
+      customer.jobCards.filter((jc) => jc.vehicle.id === v.id).length,
+    ])
+  );
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -44,18 +47,7 @@ export default async function CustomerDetailPage({
       <div className="mb-4 grid gap-4 sm:grid-cols-2">
         <Card>
           <h2 className="mb-3 text-sm font-semibold">Vehicles</h2>
-          <ul className="space-y-2 text-sm">
-            {customer.vehicles.map((v) => (
-              <li key={v.id} className="flex items-center justify-between">
-                <span>
-                  {v.make} {v.model} <span className="text-zinc-500">· {v.regNumber}</span>
-                </span>
-              </li>
-            ))}
-            {customer.vehicles.length === 0 && (
-              <li className="text-zinc-500">No vehicles yet.</li>
-            )}
-          </ul>
+          <VehicleList vehicles={customer.vehicles} vehicleJobCardCounts={vehicleJobCardCounts} />
           <div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             <AddVehicleForm customerId={customer.id} />
           </div>
@@ -77,6 +69,9 @@ export default async function CustomerDetailPage({
               <dd>{formatDate(customer.createdAt)}</dd>
             </div>
           </dl>
+          <div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <EditCustomerForm customer={customer} jobCardCount={customer.jobCards.length} />
+          </div>
         </Card>
       </div>
 
@@ -97,7 +92,7 @@ export default async function CustomerDetailPage({
                 </div>
                 <div className="flex items-center gap-3">
                   {jc.bill && <span className="text-xs">{formatINR(jc.bill.grandTotal)}</span>}
-                  <Badge tone={statusTone[jc.status]}>{jc.status.replace("_", " ")}</Badge>
+                  <Badge tone={JOB_STATUS_TONE[jc.status as JobStatus]}>{JOB_STATUS_LABELS[jc.status as JobStatus]}</Badge>
                   <span className="text-xs text-zinc-500">{formatDate(jc.createdAt)}</span>
                 </div>
               </Link>

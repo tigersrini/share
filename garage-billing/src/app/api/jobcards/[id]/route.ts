@@ -25,6 +25,8 @@ export async function GET(
 const updateSchema = z.object({
   status: z.enum(["OPEN", "IN_PROGRESS", "COMPLETED", "BILLED"]).optional(),
   complaints: z.string().min(1).optional(),
+  notes: z.string().optional(),
+  estimatedAmount: z.coerce.number().min(0).optional(),
   odometer: z.coerce.number().int().min(0).optional(),
 });
 
