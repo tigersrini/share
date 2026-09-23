@@ -15,7 +15,12 @@ export async function shareOrOpenWhatsApp(options: {
   message: string;
 }): Promise<"downloaded-and-opened" | "opened-link"> {
   const { pdfUrl, fileName, phone, message } = options;
-  const absoluteUrl = pdfUrl.startsWith("http") ? pdfUrl : `${window.location.origin}${pdfUrl}`;
+  // Always build the link from the app's canonical production domain, never
+  // the current origin - a preview-deployment origin (e.g.
+  // sparks-garage-billing-git-<hash>-<team>.vercel.app) would otherwise leak
+  // the branch name and Vercel team to the customer.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+  const absoluteUrl = pdfUrl.startsWith("http") ? pdfUrl : `${siteUrl}${pdfUrl}`;
 
   let downloaded = false;
   try {
