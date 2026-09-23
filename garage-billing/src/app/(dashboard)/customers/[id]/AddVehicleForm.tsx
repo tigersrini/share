@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Input, Label } from "@/components/ui";
+import MakeModelFields from "@/components/MakeModelFields";
 
 export default function AddVehicleForm({ customerId }: { customerId: string }) {
   const router = useRouter();
@@ -49,16 +50,7 @@ export default function AddVehicleForm({ customerId }: { customerId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label>Make</Label>
-          <Input value={make} onChange={(e) => setMake(e.target.value)} placeholder="Bajaj" required />
-        </div>
-        <div>
-          <Label>Model</Label>
-          <Input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Pulsar 150" required />
-        </div>
-      </div>
+      <MakeModelFields make={make} model={model} onMakeChange={setMake} onModelChange={setModel} />
       <div>
         <Label>Registration number</Label>
         <Input value={regNumber} onChange={(e) => setRegNumber(e.target.value)} placeholder="KA-01-AB-1234" required />

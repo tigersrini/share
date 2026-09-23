@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
+import MakeModelFields from "@/components/MakeModelFields";
 
 interface Vehicle {
   id: string;
@@ -193,10 +194,12 @@ export default function NewJobCardFlow() {
             </Button>
           ) : (
             <div className="mt-2 space-y-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Make" value={newVehicle.make} onChange={(e) => setNewVehicle((v) => ({ ...v, make: e.target.value }))} />
-                <Input placeholder="Model" value={newVehicle.model} onChange={(e) => setNewVehicle((v) => ({ ...v, model: e.target.value }))} />
-              </div>
+              <MakeModelFields
+                make={newVehicle.make}
+                model={newVehicle.model}
+                onMakeChange={(make) => setNewVehicle((v) => ({ ...v, make }))}
+                onModelChange={(model) => setNewVehicle((v) => ({ ...v, model }))}
+              />
               <Input
                 placeholder="Registration number"
                 value={newVehicle.regNumber}

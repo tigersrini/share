@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
   const email = parsed.data.email.trim().toLowerCase();
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
+  if (!user || !user.active) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  const token = await createSessionToken({ userId: user.id, email: user.email, name: user.name });
+  const token = await createSessionToken({ userId: user.id, email: user.email, name: user.name, role: user.role });
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions);
   return res;
