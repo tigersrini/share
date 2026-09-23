@@ -3,10 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { invalidJsonResponse, readJsonBody } from "@/lib/request";
 
-const addSchema = z.object({
-  barcode: z.string().min(1),
-  quantity: z.coerce.number().int().min(1).default(1),
-});
+const addSchema = z
+  .object({
+    barcode: z.string().min(1).optional(),
+    sparePartId: z.string().min(1).optional(),
+    quantity: z.coerce.number().int().min(1).default(1),
+  })
+  .refine((d) => d.barcode || d.sparePartId, {
+    message: "Either barcode or sparePartId is required",
+  });
 
 /**
  * A mechanic scans a spare's barcode while working a job card. This adds it
@@ -24,7 +29,7 @@ export async function POST(
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { barcode, quantity } = parsed.data;
+  const { barcode, sparePartId, quantity } = parsed.data;
 
   const jobCard = await prisma.jobCard.findUnique({ where: { id: jobCardId } });
   if (!jobCard) return NextResponse.json({ error: "Job card not found" }, { status: 404 });
@@ -32,10 +37,12 @@ export async function POST(
     return NextResponse.json({ error: "This job card is already billed." }, { status: 400 });
   }
 
-  const sparePart = await prisma.sparePart.findUnique({ where: { barcode } });
+  const sparePart = sparePartId
+    ? await prisma.sparePart.findUnique({ where: { id: sparePartId } })
+    : await prisma.sparePart.findUnique({ where: { barcode } });
   if (!sparePart) {
     return NextResponse.json(
-      { error: "No part in inventory with this barcode. Scan it into Inventory first." },
+      { error: "No matching part in inventory. Add it in Inventory first." },
       { status: 404 }
     );
   }
