@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model SparePart {
+  id            String   @id @default(cuid())
+  barcode       String   @unique
+  name          String
+  description   String?
+  make          String? // brand / manufacturer, e.g. "Bajaj OEM", "Bosch"
+  category      String? // e.g. "Engine", "Brake", "Electrical", "Consumable"
+  costPrice     Float    @default(0)
+  sellingPrice  Float    @default(0)
+  quantity      Int      @default(0)
+  lowStockAt    Int      @default(2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  transactions  InventoryTxn[]
+  jobCardParts  JobCardPart[]
+}
+
+enum TxnType {
+  IN
+  OUT
+}
+
+model InventoryTxn {
+  id          String    @id @default(cuid())
+  sparePartId String
+  sparePart   SparePart @relation(fields: [sparePartId], references: [id])
+  type        TxnType
+  quantity    Int
+  note        String?
+  jobCardId   String?
+  jobCard     JobCard?  @relation(fields: [jobCardId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique
+  address   String?
+  createdAt DateTime  @default(now())
+
+  vehicles  Vehicle[]
+  jobCards  JobCard[]
+}
+
+model Vehicle {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  make        String
+  model       String
+  regNumber   String
+  vin         String?
+  createdAt   DateTime  @default(now())
+
+  jobCards    JobCard[]
+
+  @@unique([customerId, regNumber])
+}
+
+enum JobCardStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  BILLED
+}
+
+model JobCard {
+  id          String        @id @default(cuid())
+  customerId  String
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  vehicleId   String
+  vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
+  complaints  String
+  notes       String? // mechanic's own remarks, entered when the job card is opened
+  estimatedAmount Float?
+  odometer    Int?
+  status      JobCardStatus @default(OPEN)
+  createdAt   DateTime      @default(now())
+  closedAt    DateTime?
+
+  parts       JobCardPart[]
+  labors      JobCardLabor[]
+  txns        InventoryTxn[]
+  images      JobCardImage[]
+  bill        Bill?
+}
+
+model JobCardImage {
+  id        String   @id @default(cuid())
+  jobCardId String
+  jobCard   JobCard  @relation(fields: [jobCardId], references: [id])
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model JobCardPart {
+  id          String    @id @default(cuid())
+  jobCardId   String
+  jobCard     JobCard   @relation(fields: [jobCardId], references: [id])
+  sparePartId String
+  sparePart   SparePart @relation(fields: [sparePartId], references: [id])
+  quantity    Int
+  priceAtSale Float
+  createdAt   DateTime  @default(now())
+}
+
+model JobCardLabor {
+  id          String   @id @default(cuid())
+  jobCardId   String
+  jobCard     JobCard  @relation(fields: [jobCardId], references: [id])
+  description String
+  amount      Float
+  createdAt   DateTime @default(now())
+}
+
+model Bill {
+  id            String    @id @default(cuid())
+  jobCardId     String    @unique
+  jobCard       JobCard   @relation(fields: [jobCardId], references: [id])
+  partsTotal    Float
+  laborTotal    Float
+  taxPercent    Float     @default(0)
+  taxAmount     Float
+  discount      Float     @default(0)
+  grandTotal    Float
+  createdAt     DateTime  @default(now())
+  whatsappSentAt DateTime?
+}
