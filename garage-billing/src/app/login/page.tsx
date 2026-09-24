@@ -38,8 +38,8 @@ function LoginForm() {
     <div className="flex min-h-dvh items-center justify-center bg-black px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center">
-          <div className="relative h-20 w-20 overflow-hidden rounded-xl shadow-[0_0_40px_rgba(255,120,0,0.25)]">
-            <Image src="/sparks-logo.jpg" alt="Sparks Racing and Garage" fill sizes="80px" className="object-cover" priority />
+          <div className="relative aspect-[1200/415] w-64 overflow-hidden rounded-lg shadow-[0_0_40px_rgba(255,120,0,0.25)]">
+            <Image src="/sparks-logo.png" alt="Sparks Racing and Garage" fill sizes="256px" className="object-contain" priority />
           </div>
           <h1 className="mt-4 text-lg font-semibold text-white">Sparks Racing &amp; Garage</h1>
           <p className="text-sm text-zinc-400">Inventory &amp; Billing — staff login</p>

@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/icon") ||
-    pathname === "/sparks-logo.jpg" ||
+    pathname === "/sparks-logo.png" ||
     // Bill/acknowledgement PDFs are shared with customers via a WhatsApp
     // link — the job card id in the path is an unguessable cuid, so this is
     // safe to serve without requiring the customer to have a staff login.

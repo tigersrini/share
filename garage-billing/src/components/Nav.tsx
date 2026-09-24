@@ -35,13 +35,13 @@ export default function Nav({ userName, isAdmin }: { userName?: string; isAdmin?
       <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-black/95">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:py-3">
           <Link href="/" className="flex min-w-0 items-center gap-2">
-            <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-md bg-black sm:h-10 sm:w-10">
+            <span className="relative h-8 w-20 shrink-0 overflow-hidden rounded-md bg-black sm:h-9 sm:w-24">
               <Image
-                src="/sparks-logo.jpg"
+                src="/sparks-logo.png"
                 alt="Sparks Racing and Garage logo"
                 fill
-                sizes="40px"
-                className="object-cover"
+                sizes="96px"
+                className="object-contain"
                 priority
               />
             </span>

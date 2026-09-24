@@ -51,14 +51,14 @@ export default function SplashScreen() {
     >
       <div className="splash-flag-sweep absolute inset-0" />
       <div className="relative flex flex-col items-center">
-        <div className="splash-logo-pop relative h-40 w-40 overflow-hidden rounded-xl shadow-[0_0_60px_rgba(255,120,0,0.35)] sm:h-52 sm:w-52">
+        <div className="splash-logo-pop relative aspect-[1200/415] w-72 overflow-hidden rounded-lg shadow-[0_0_60px_rgba(255,120,0,0.35)] sm:w-96">
           <Image
-            src="/sparks-logo.jpg"
+            src="/sparks-logo.png"
             alt="Sparks Racing and Garage"
             fill
-            sizes="208px"
+            sizes="384px"
             priority
-            className="object-cover"
+            className="object-contain"
           />
         </div>
         <p className="splash-tagline mt-5 text-sm font-semibold tracking-[0.3em] text-orange-400 uppercase">
