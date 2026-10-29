@@ -1,0 +1,516 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Users & settings ─────────────
+
+enum Role {
+  ADMIN
+  STAFF
+  /// Site crew: can only see their jobs, the sites board and the schedule — never money.
+  FIELD
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  customers  Customer[]
+  teamMember TeamMember?
+}
+
+/// Single-row key/value store for company profile + calculator assumptions.
+/// See src/lib/settings.ts for the typed shape and defaults.
+model Setting {
+  id   String @id @default("main")
+  data Json
+}
+
+/// Per-financial-year document counters, e.g. key "quote:26-27".
+model Counter {
+  key   String @id
+  value Int    @default(0)
+}
+
+// ───────────── CRM ─────────────
+
+enum CustomerStage {
+  NEW
+  CONTACTED
+  SITE_VISIT
+  QUOTED
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum CustomerType {
+  RESIDENTIAL
+  COMMERCIAL
+  INDUSTRIAL
+}
+
+model Customer {
+  id             String        @id @default(cuid())
+  name           String
+  phone          String        @unique
+  altPhone       String?
+  email          String?
+  address        String?
+  city           String?
+  pincode        String?
+  gstin          String?
+  type           CustomerType  @default(RESIDENTIAL)
+  source         String?
+  stage          CustomerStage @default(NEW)
+  monthlyBill    Float?
+  monthlyUnits   Float?
+  roofAreaSqft   Float?
+  expectedKw     Float?
+  nextFollowUpAt DateTime?
+  lostReason     String?
+  notes          String?
+  ownerId        String?
+  owner          User?         @relation(fields: [ownerId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  activities Activity[]
+  quotes     Quote[]
+  projects   Project[]
+  invoices   Invoice[]
+  payments   Payment[]
+
+  @@index([stage])
+  @@index([nextFollowUpAt])
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  VISIT
+  WHATSAPP
+  EMAIL
+  STAGE
+}
+
+model Activity {
+  id            String       @id @default(cuid())
+  customerId    String
+  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type          ActivityType @default(NOTE)
+  text          String
+  createdByName String?
+  createdAt     DateTime     @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+// ───────────── Quotations ─────────────
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model Quote {
+  id               String      @id @default(cuid())
+  number           String      @unique
+  customerId       String
+  customer         Customer    @relation(fields: [customerId], references: [id])
+  status           QuoteStatus @default(DRAFT)
+  date             DateTime    @default(now())
+  validityDays     Int         @default(10)
+  title            String
+  systemKw         Float
+  systemType       String      @default("On-Grid")
+  /// Particulars shown on the commercial table
+  scopeText        String
+  totalAmount      Float
+  subsidyCentral   Float       @default(0)
+  subsidyState     Float       @default(0)
+  /// [{ item, makes }]
+  makes            Json        @default("[]")
+  /// [{ label, percent }]
+  paymentTerms     Json        @default("[]")
+  /// string[] — documents the customer must provide for the subsidy
+  subsidyDocs      Json        @default("[]")
+  warranty         String      @default("")
+  performanceRatio String      @default("")
+  timeline         String      @default("")
+  otherTerms       String      @default("")
+  /// Snapshot of the solar calculator (inputs + results) for the savings page
+  calc             Json?
+  includeSavings   Boolean     @default(false)
+  notes            String?
+  sentAt           DateTime?
+  decidedAt        DateTime?
+  createdByName    String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  lines    QuoteLine[]
+  projects Project[]
+  invoices Invoice[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model QuoteLine {
+  id          String  @id @default(cuid())
+  quoteId     String
+  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  sort        Int     @default(0)
+  description String
+  uom         String  @default("Nos")
+  qty         String  @default("1") // string: sample quote has "9/10" panels
+  qtyNum      Float   @default(1) // numeric qty used for costing
+  itemId      String?
+  item        Item?   @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  /// Our internal cost per unit — never printed on the quotation
+  unitCost    Float   @default(0)
+}
+
+// ───────────── Projects ─────────────
+
+enum ProjectStage {
+  ORDER_CONFIRMED
+  ADVANCE_RECEIVED
+  PROCUREMENT
+  INSTALLATION
+  COMMISSIONING
+  NET_METERING
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+enum SubsidyStatus {
+  NOT_APPLICABLE
+  TO_APPLY
+  APPLIED
+  APPROVED
+  RECEIVED
+}
+
+model Project {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  quoteId       String?
+  quote         Quote?        @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  name          String
+  systemKw      Float
+  stage         ProjectStage  @default(ORDER_CONFIRMED)
+  /// What the customer pays us in total (GST inclusive)
+  contractValue Float
+  subsidyAmount Float         @default(0)
+  subsidyStatus SubsidyStatus @default(NOT_APPLICABLE)
+  subsidyRef    String?
+  address       String?
+  startDate     DateTime?
+  targetDate    DateTime?
+  completedAt   DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  tasks       ProjectTask[]
+  assignments Assignment[]
+  siteUpdates SiteUpdate[]
+  movements   StockMovement[]
+  expenses    Expense[]
+  payments    Payment[]
+  invoices    Invoice[]
+
+  @@index([stage])
+}
+
+model ProjectTask {
+  id        String    @id @default(cuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title     String
+  done      Boolean   @default(false)
+  doneAt    DateTime?
+  sort      Int       @default(0)
+}
+
+// ───────────── Invoices & payments ─────────────
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  CANCELLED
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  number         String        @unique
+  date           DateTime      @default(now())
+  status         InvoiceStatus @default(ISSUED)
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  projectId      String?
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  quoteId        String?
+  quote          Quote?        @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  placeOfSupply  String        @default("33")
+  billName       String
+  billAddress    String
+  billGstin      String?
+  shipName       String?
+  shipAddress    String?
+  shipGstin      String?
+  buyerOrderNo   String?
+  buyerOrderDate String?
+  paymentTerms   String?
+  terms          String?
+  /// Taxable value (before GST)
+  subtotal       Float
+  cgst           Float         @default(0)
+  sgst           Float         @default(0)
+  igst           Float         @default(0)
+  roundOff       Float         @default(0)
+  total          Float
+  createdByName  String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@index([date])
+  @@index([customerId])
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  sort        Int     @default(0)
+  description String
+  hsn         String?
+  qty         Float
+  unit        String  @default("Nos")
+  rate        Float
+  gstRate     Float   @default(0)
+  amount      Float
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CHEQUE
+  CARD
+  OTHER
+}
+
+/// Money received from a customer.
+model Payment {
+  id         String      @id @default(cuid())
+  date       DateTime    @default(now())
+  amount     Float
+  mode       PaymentMode @default(BANK_TRANSFER)
+  reference  String?
+  note       String?
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  projectId  String?
+  project    Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  invoiceId  String?
+  invoice    Invoice?    @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt  DateTime    @default(now())
+
+  @@index([date])
+}
+
+// ───────────── Inventory ─────────────
+
+enum ItemCategory {
+  PANEL
+  INVERTER
+  BATTERY
+  STRUCTURE
+  CABLE
+  PROTECTION
+  EARTHING
+  ACCESSORY
+  CIVIL
+  OTHER
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  gstin     String?
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  movements StockMovement[]
+}
+
+model Item {
+  id           String       @id @default(cuid())
+  sku          String       @unique
+  name         String
+  category     ItemCategory @default(OTHER)
+  make         String?
+  spec         String? // e.g. "585 Wp", "5 kW 1-Ph"
+  uom          String       @default("Nos")
+  hsn          String?
+  gstRate      Float        @default(0)
+  /// Weighted-average landed cost (ex-GST), recalculated on every purchase
+  costPrice    Float        @default(0)
+  sellPrice    Float        @default(0)
+  quantity     Float        @default(0)
+  reorderLevel Float        @default(0)
+  active       Boolean      @default(true)
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  movements  StockMovement[]
+  quoteLines QuoteLine[]
+}
+
+enum MovementType {
+  OPENING
+  PURCHASE
+  ISSUE
+  RETURN
+  ADJUSTMENT
+}
+
+model StockMovement {
+  id            String       @id @default(cuid())
+  itemId        String
+  item          Item         @relation(fields: [itemId], references: [id])
+  type          MovementType
+  /// Signed: + adds stock, − removes stock
+  qty           Float
+  unitCost      Float        @default(0)
+  projectId     String?
+  project       Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  supplierId    String?
+  supplier      Supplier?    @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  reference     String?
+  note          String?
+  createdByName String?
+  createdAt     DateTime     @default(now())
+
+  @@index([itemId, createdAt])
+  @@index([projectId])
+}
+
+// ───────────── Expenses ─────────────
+
+enum ExpenseCategory {
+  SALARY
+  LABOUR
+  TRANSPORT
+  INSTALLATION
+  PERMITS
+  MARKETING
+  RENT
+  UTILITIES
+  TOOLS
+  OFFICE
+  OTHER
+}
+
+model Expense {
+  id        String          @id @default(cuid())
+  date      DateTime        @default(now())
+  category  ExpenseCategory @default(OTHER)
+  amount    Float
+  vendor    String?
+  note      String?
+  mode      PaymentMode?
+  /// Set → direct project cost. Empty → business overhead.
+  projectId String?
+  project   Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt DateTime        @default(now())
+
+  @@index([date])
+}
+
+// ───────────── Field team ─────────────
+
+model TeamMember {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String?
+  /// Free text: Installer, Electrician, Supervisor, Helper, Engineer…
+  role      String    @default("Installer")
+  /// ₹ per day worked — used for crew-cost estimates only
+  dailyRate Float     @default(0)
+  active    Boolean   @default(true)
+  joinedOn  DateTime?
+  notes     String?
+  /// Optional login so the member can see their own jobs at /my
+  userId    String?   @unique
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+
+  assignments Assignment[]
+  siteUpdates SiteUpdate[]
+}
+
+enum AssignmentStatus {
+  PLANNED
+  DONE
+  ABSENT
+}
+
+/// One member on one site for one day. History = rows in the past; planning = rows in the future.
+model Assignment {
+  id            String           @id @default(cuid())
+  projectId     String
+  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        TeamMember       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// Stored at midday IST so it groups cleanly by calendar day
+  date          DateTime
+  status        AssignmentStatus @default(PLANNED)
+  note          String?
+  createdByName String?
+  createdAt     DateTime         @default(now())
+
+  @@unique([memberId, date, projectId])
+  @@index([date])
+  @@index([projectId])
+}
+
+/// Field log entry — the "current site status" feed.
+model SiteUpdate {
+  id            String      @id @default(cuid())
+  projectId     String
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberId      String?
+  member        TeamMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  note          String
+  createdByName String?
+  createdAt     DateTime    @default(now())
+
+  @@index([projectId, createdAt])
+}
