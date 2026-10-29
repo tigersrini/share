@@ -20,6 +20,9 @@ If the database is brand-new (no tables yet), use `npm run vercel-build` once in
 (with `SEED_ON_BUILD=true`) the first admin, with no SSH. It uses Turbopack, so if Hostinger kills it, create the
 tables from your own computer: `DATABASE_URL=... npx prisma migrate deploy && npm run db:seed`.
 
+The build is limited to one worker in `next.config.ts` (Hostinger's build servers have 40+ cores but allow few threads per account).
+If it still reports "OS can't spawn worker thread", add the variable `TOKIO_WORKER_THREADS` = `2` and redeploy.
+
 If a build is killed for memory, add the variable `NODE_OPTIONS` = `--max-old-space-size=1536`.
 
 ## 3. Environment variables (Node.js app → Environment variables)
