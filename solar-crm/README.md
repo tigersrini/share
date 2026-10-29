@@ -46,8 +46,9 @@ invoice `SS/26-27/014`. Change this any time in *Settings → Document numbering
 1. Create a Postgres database (Neon / Supabase / Vercel Postgres) and import this repo as a Vercel
    project with **Root Directory = `solar-crm`**.
 2. Set env vars: `DATABASE_URL`, `AUTH_SECRET` (`openssl rand -base64 32`).
-3. Run `npx prisma migrate deploy` once against the production DB, then `npm run db:seed`
-   (with `ADMIN_EMAIL` / `ADMIN_PASSWORD` set) to create the first admin.
+3. Migrations run automatically during the Vercel build (`vercel-build`) whenever `DATABASE_URL` is set — use the
+   provider's **direct (non-pooled)** connection string. Then run `npm run db:seed` once from your machine
+   (with `ADMIN_EMAIL` / `ADMIN_PASSWORD` set and `DATABASE_URL` pointing at production) to create the first admin.
 4. Add the domain `energy.sanacara.com` (or a sub-path/sub-domain such as `crm.sanacara.com` if
    `energy.sanacara.com` is already serving your website) in Vercel → Domains.
 
