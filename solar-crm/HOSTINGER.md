@@ -12,12 +12,15 @@ hPanel → **Websites → Add website → Node.js App → Upload your website fi
 | --- | --- |
 | Node.js version | 22.x (20.9+ works) |
 | Install command | `npm install` |
-| Build command | `npm run vercel-build` |
+| Build command | `npm run build` (uses webpack — Turbopack's helper process gets killed on Hostinger's build servers) |
 | Start command | `npm start` |
 | Entry / root | the folder containing `package.json` |
 
-`vercel-build` = generate Prisma client → create/upgrade database tables → (optional first-time seed) → `next build`.
-It needs no SSH.
+If the database is brand-new (no tables yet), use `npm run vercel-build` once instead: it also creates the tables and
+(with `SEED_ON_BUILD=true`) the first admin, with no SSH. It uses Turbopack, so if Hostinger kills it, create the
+tables from your own computer: `DATABASE_URL=... npx prisma migrate deploy && npm run db:seed`.
+
+If a build is killed for memory, add the variable `NODE_OPTIONS` = `--max-old-space-size=1536`.
 
 ## 3. Environment variables (Node.js app → Environment variables)
 | Name | Value |
