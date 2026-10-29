@@ -27,7 +27,7 @@ export default async function UsersPage() {
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td><div className="font-medium">{u.name}</div><div className="text-xs text-muted">{u.email} · since {formatDate(u.createdAt)}</div></td>
-                    <td>{u.role === "ADMIN" ? <Badge tone="violet">Admin</Badge> : <Badge>Staff</Badge>}</td>
+                    <td>{u.role === "ADMIN" ? <Badge tone="violet">Admin</Badge> : u.role === "FIELD" ? <Badge tone="amber">Field crew</Badge> : <Badge>Staff</Badge>}</td>
                     <td>{u.active ? <Badge tone="green">Active</Badge> : <Badge tone="red">Disabled</Badge>}</td>
                     <td>
                       {u.id !== session.userId && (
@@ -36,6 +36,7 @@ export default async function UsersPage() {
                           <input type="hidden" name="active" value={String(u.active)} />
                           <Select name="role" defaultValue={u.role} className="!w-24 !py-1 text-xs">
                             <option value="STAFF">Staff</option>
+                            <option value="FIELD">Field crew</option>
                             <option value="ADMIN">Admin</option>
                           </Select>
                           <Button variant="secondary" className="!px-2 !py-1 text-xs">Set role</Button>
@@ -69,11 +70,11 @@ export default async function UsersPage() {
             <div className="space-y-3">
               <Field label="Name"><Input name="name" required /></Field>
               <Field label="Email"><Input name="email" type="email" autoCapitalize="none" required /></Field>
-              <Field label="Role"><Select name="role" defaultValue="STAFF"><option value="STAFF">Staff</option><option value="ADMIN">Admin</option></Select></Field>
+              <Field label="Role"><Select name="role" defaultValue="STAFF"><option value="STAFF">Staff (office)</option><option value="FIELD">Field crew (phone)</option><option value="ADMIN">Admin</option></Select></Field>
               <Field label="Temporary password" hint="8+ characters"><Input name="password" type="text" minLength={8} required /></Field>
             </div>
           </ActionForm>
-          <p className="mt-3 text-xs text-muted">Staff can use every module; only admins can change settings, delete records and manage accounts.</p>
+          <p className="mt-3 text-xs text-muted">Staff can use every module; field crew only see My jobs, Sites and Schedule (no money, customers or settings); only admins change settings, delete records and manage accounts.</p>
         </Card>
       </div>
     </div>

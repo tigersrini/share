@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, requireSession } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { fail, oneOf, optNum, optStr, str, type ActionState } from "@/lib/form";
 import { fromDateInput, normalizePhone } from "@/lib/format";
 import { ACTIVITY_TYPES, CUSTOMER_TYPES, STAGES, STAGE_LABEL } from "@/lib/labels";
@@ -37,7 +37,7 @@ function validate(c: ReturnType<typeof readCustomer>): string | null {
 }
 
 export async function createCustomer(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const data = readCustomer(fd);
   const err = validate(data);
   if (err) return fail(err);
@@ -64,7 +64,7 @@ export async function createCustomer(_prev: ActionState, fd: FormData): Promise<
 }
 
 export async function updateCustomer(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const id = str(fd, "id");
   const data = readCustomer(fd);
   const err = validate(data);
@@ -114,7 +114,7 @@ async function changeStage(id: string, stage: (typeof STAGES)[number], lostReaso
 }
 
 export async function setStage(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const stage = oneOf(str(fd, "stage"), STAGES, "NEW");
   const err = await changeStage(str(fd, "id"), stage, optStr(fd, "lostReason"), session.name);
   return err ? fail(err) : { ok: `Moved to ${STAGE_LABEL[stage]}.` };
@@ -122,14 +122,14 @@ export async function setStage(_prev: ActionState, fd: FormData): Promise<Action
 
 /** Pipeline-board arrows: plain <form action>, so it returns nothing. */
 export async function moveStage(fd: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const stage = oneOf(str(fd, "stage"), STAGES, "NEW");
   const err = await changeStage(str(fd, "id"), stage, null, session.name);
   if (err) throw new Error(err);
 }
 
 export async function addActivity(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const id = str(fd, "id");
   const text = str(fd, "text");
   if (!text) return fail("Write a short note first.");
@@ -147,7 +147,7 @@ export async function addActivity(_prev: ActionState, fd: FormData): Promise<Act
 
 /** One-tap "snooze" / reschedule from the dashboard follow-up list. */
 export async function rescheduleFollowUp(fd: FormData): Promise<void> {
-  await requireSession();
+  await requireStaff();
   const id = str(fd, "id");
   const when = fromDateInput(str(fd, "date"));
   await prisma.customer.update({ where: { id }, data: { nextFollowUpAt: when } });

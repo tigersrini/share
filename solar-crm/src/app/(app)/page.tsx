@@ -5,7 +5,7 @@ import { getSettings } from "@/lib/settings";
 import { BarChart, HBars } from "@/components/Charts";
 import Icon from "@/components/Icon";
 import { Badge, Card, EmptyState, LinkButton, PageHeader, SectionTitle, StatCard } from "@/components/ui";
-import { endOfDay, formatDate, formatINR, formatINRShort, nowMs, startOfMonth, toDateInput, whatsAppLink } from "@/lib/format";
+import { endOfDay, startOfDay, formatDate, formatINR, formatINRShort, nowMs, startOfMonth, toDateInput, whatsAppLink } from "@/lib/format";
 import { ACTIVE_PROJECT_STAGES, PROJECT_STAGE_LABEL, PROJECT_STAGE_TONE, STAGES, STAGE_LABEL } from "@/lib/labels";
 import { lastMonths, monthKey } from "@/lib/finance";
 import { netPayable } from "@/lib/quote";
@@ -26,6 +26,7 @@ export default async function DashboardPage() {
   const months = lastMonths(6);
   const chartFrom = months[0].start;
 
+  const todayAssign = await prisma.assignment.findMany({ where: { date: { gte: startOfDay(now), lte: endOfDay(now) } }, include: { member: { select: { name: true } }, project: { select: { id: true, code: true, customer: { select: { name: true } } } } } });
   const [stageCounts, newLeads, followUps, openQuotes, quotesSent, decided, chase, revenueRows, paymentsRows, projects, items, activeProjectsCount] = await Promise.all([
     prisma.customer.groupBy({ by: ["stage"], _count: true }),
     prisma.customer.count({ where: { createdAt: { gte: monthStart } } }),
@@ -57,6 +58,13 @@ export default async function DashboardPage() {
   const active = withBalance.filter((p) => ACTIVE_PROJECT_STAGES.includes(p.stage)).slice(0, 6);
   const lowStock = items.filter((i) => i.quantity <= i.reorderLevel).sort((a, b) => a.quantity / a.reorderLevel - b.quantity / b.reorderLevel).slice(0, 6);
 
+  const crewBySite = new Map<string, { id: string; code: string; customer: string; names: string[] }>();
+  for (const a of todayAssign.filter((x) => x.status !== "ABSENT")) {
+    const c = crewBySite.get(a.projectId) ?? { id: a.project.id, code: a.project.code, customer: a.project.customer.name, names: [] };
+    c.names.push(a.member.name.split(" ")[0]);
+    crewBySite.set(a.projectId, c);
+  }
+  const noCrew = projects.filter((p) => ["INSTALLATION", "COMMISSIONING"].includes(p.stage) && !crewBySite.has(p.id));
   const funnel = STAGES.filter((s) => s !== "LOST").map((s) => ({ label: STAGE_LABEL[s], value: stageCounts.find((c) => c.stage === s)?._count ?? 0 }));
   const dayPlus = (n: number) => toDateInput(new Date(nowMs() + n * 86400000));
   const todayStr = toDateInput(now);
@@ -161,6 +169,23 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-4">
+          <Card>
+            <SectionTitle action={<Link href="/sites" className="text-xs font-medium text-brand">Sites →</Link>}>Today on site</SectionTitle>
+            {crewBySite.size === 0 ? (
+              <p className="text-sm text-muted">Nobody scheduled today. <Link href="/schedule/assign" className="font-medium text-brand">Assign crew</Link></p>
+            ) : (
+              <ul className="space-y-2.5 text-sm">
+                {[...crewBySite.values()].map((c) => (
+                  <li key={c.id}>
+                    <Link href={`/sites/${c.id}`} className="font-medium hover:text-brand">{c.customer}</Link>
+                    <div className="text-xs text-muted">{c.code} · {c.names.join(", ")}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {noCrew.length > 0 && <p className="mt-3 rounded-lg bg-amber-soft px-3 py-2 text-xs text-amber">No crew today: {noCrew.map((p) => p.customer.name).join(", ")}</p>}
+          </Card>
+
           <Card>
             <SectionTitle action={<Link href="/pipeline" className="text-xs font-medium text-brand">Board →</Link>}>Sales funnel</SectionTitle>
             <HBars rows={funnel} format={(n) => String(Math.round(n))} />

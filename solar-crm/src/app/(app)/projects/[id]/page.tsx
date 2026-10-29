@@ -55,6 +55,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         invoices: { orderBy: { date: "desc" } },
         movements: { orderBy: { createdAt: "desc" }, include: { item: true } },
         expenses: { orderBy: { date: "desc" } },
+        assignments: { where: { status: "DONE" }, select: { member: { select: { dailyRate: true } } } },
       },
     }),
     getSettings(),
@@ -245,6 +246,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
 
         <div className="space-y-4">
+          <Card>
+            <SectionTitle>Site & crew</SectionTitle>
+            <Dl items={[["Man-days worked", String(p.assignments.length)], ["Crew wages (est.)", formatINR(p.assignments.reduce((s, a) => s + a.member.dailyRate, 0))]]} />
+            <div className="mt-3 flex flex-wrap gap-2">
+              <LinkButton href={`/sites/${p.id}`}>Site view</LinkButton>
+              <LinkButton href={`/schedule/assign?projectId=${p.id}`}>Assign crew</LinkButton>
+            </div>
+            <p className="mt-2 text-xs text-muted">Wages are informational and not in the margin above — add them under Direct expenses to include them.</p>
+          </Card>
+
           <Card>
             <SectionTitle>Stage</SectionTitle>
             <form action={setProjectStage} className="flex gap-2">

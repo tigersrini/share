@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, asJson } from "@/lib/prisma";
-import { requireAdmin, requireSession } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { fail, oneOf, str, type ActionState } from "@/lib/form";
 import { fromDateInput } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
@@ -12,7 +12,7 @@ import { parseQty, quoteFormSchema } from "@/lib/quote";
 import { DEFAULT_PROJECT_TASKS, QUOTE_STATUSES } from "@/lib/labels";
 
 export async function saveQuote(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   let raw: unknown;
   try {
     raw = JSON.parse(str(fd, "payload"));
@@ -84,7 +84,7 @@ export async function saveQuote(_prev: ActionState, fd: FormData): Promise<Actio
 }
 
 export async function setQuoteStatus(fd: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const id = str(fd, "id");
   const status = oneOf(str(fd, "status"), QUOTE_STATUSES, "DRAFT");
   const q = await prisma.quote.findUnique({ where: { id }, include: { customer: true } });
@@ -113,7 +113,7 @@ export async function setQuoteStatus(fd: FormData): Promise<void> {
 
 /** New revision: copies everything into a fresh draft with the next number. */
 export async function duplicateQuote(fd: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const src = await prisma.quote.findUnique({ where: { id: str(fd, "id") }, include: { lines: { orderBy: { sort: "asc" } } } });
   if (!src) throw new Error("Quotation not found.");
   const settings = await getSettings();
@@ -154,7 +154,7 @@ export async function duplicateQuote(fd: FormData): Promise<void> {
 
 /** Accepted quote → a delivery project with the standard checklist. */
 export async function convertToProject(fd: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const id = str(fd, "id");
   const q = await prisma.quote.findUnique({ where: { id }, include: { customer: true, projects: true } });
   if (!q) throw new Error("Quotation not found.");

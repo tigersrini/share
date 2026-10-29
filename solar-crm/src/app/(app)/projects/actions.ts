@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, requireSession } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { bool, fail, num, oneOf, optStr, str, type ActionState } from "@/lib/form";
 import { fromDateInput } from "@/lib/format";
 import { recordMovement } from "@/lib/stock";
@@ -17,7 +17,7 @@ function refresh(projectId?: string | null) {
 }
 
 export async function setProjectStage(fd: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const id = str(fd, "id");
   const stage = oneOf(str(fd, "stage"), PROJECT_STAGES, "ORDER_CONFIRMED");
   const p = await prisma.project.findUnique({ where: { id } });
@@ -31,7 +31,7 @@ export async function setProjectStage(fd: FormData): Promise<void> {
 }
 
 export async function updateProject(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const id = str(fd, "id");
   const name = str(fd, "name");
   if (!name) return fail("Project name is required.");
@@ -54,7 +54,7 @@ export async function updateProject(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function updateSubsidy(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const id = str(fd, "id");
   await prisma.project.update({
     where: { id },
@@ -69,7 +69,7 @@ export async function updateSubsidy(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function toggleTask(fd: FormData): Promise<void> {
-  await requireSession();
+  await requireStaff();
   const id = str(fd, "id");
   const t = await prisma.projectTask.findUnique({ where: { id } });
   if (!t) return;
@@ -78,7 +78,7 @@ export async function toggleTask(fd: FormData): Promise<void> {
 }
 
 export async function addTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const projectId = str(fd, "projectId");
   const title = str(fd, "title");
   if (!title) return fail("Enter a task.");
@@ -89,7 +89,7 @@ export async function addTask(_prev: ActionState, fd: FormData): Promise<ActionS
 }
 
 export async function deleteTask(fd: FormData): Promise<void> {
-  await requireSession();
+  await requireStaff();
   const t = await prisma.projectTask.findUnique({ where: { id: str(fd, "id") } });
   if (!t) return;
   await prisma.projectTask.delete({ where: { id: t.id } });
@@ -98,7 +98,7 @@ export async function deleteTask(fd: FormData): Promise<void> {
 
 /** Record money received — from a project page or an invoice page. */
 export async function addPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const amount = num(fd, "amount");
   if (!(amount > 0)) return fail("Enter the amount received.");
   const projectId = optStr(fd, "projectId");
@@ -149,7 +149,7 @@ export async function deletePayment(fd: FormData): Promise<void> {
 
 /** Issue stock to a project (reduces inventory, becomes project material cost). */
 export async function issueMaterial(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const projectId = str(fd, "projectId");
   const itemId = str(fd, "itemId");
   const qty = num(fd, "qty");
@@ -169,7 +169,7 @@ export async function issueMaterial(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function addProjectExpense(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const projectId = str(fd, "projectId");
   const amount = num(fd, "amount");
   if (!(amount > 0)) return fail("Enter the amount.");

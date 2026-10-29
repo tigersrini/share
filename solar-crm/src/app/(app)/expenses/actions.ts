@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, requireSession } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { fail, num, oneOf, optStr, str, type ActionState } from "@/lib/form";
 import { fromDateInput } from "@/lib/format";
 import { EXPENSE_CATEGORIES, PAYMENT_MODES } from "@/lib/labels";
 
 export async function createExpense(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const amount = num(fd, "amount");
   if (!(amount > 0)) return fail("Enter the amount.");
   const projectId = optStr(fd, "projectId");

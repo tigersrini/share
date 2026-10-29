@@ -12,6 +12,8 @@ datasource db {
 enum Role {
   ADMIN
   STAFF
+  /// Site crew: can only see their jobs, the sites board and the schedule — never money.
+  FIELD
 }
 
 model User {
@@ -23,7 +25,8 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  customers Customer[]
+  customers  Customer[]
+  teamMember TeamMember?
 }
 
 /// Single-row key/value store for company profile + calculator assumptions.
@@ -227,11 +230,13 @@ model Project {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  tasks     ProjectTask[]
-  movements StockMovement[]
-  expenses  Expense[]
-  payments  Payment[]
-  invoices  Invoice[]
+  tasks       ProjectTask[]
+  assignments Assignment[]
+  siteUpdates SiteUpdate[]
+  movements   StockMovement[]
+  expenses    Expense[]
+  payments    Payment[]
+  invoices    Invoice[]
 
   @@index([stage])
 }
@@ -447,4 +452,65 @@ model Expense {
   createdAt DateTime        @default(now())
 
   @@index([date])
+}
+
+// ───────────── Field team ─────────────
+
+model TeamMember {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String?
+  /// Free text: Installer, Electrician, Supervisor, Helper, Engineer…
+  role      String    @default("Installer")
+  /// ₹ per day worked — used for crew-cost estimates only
+  dailyRate Float     @default(0)
+  active    Boolean   @default(true)
+  joinedOn  DateTime?
+  notes     String?
+  /// Optional login so the member can see their own jobs at /my
+  userId    String?   @unique
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+
+  assignments Assignment[]
+  siteUpdates SiteUpdate[]
+}
+
+enum AssignmentStatus {
+  PLANNED
+  DONE
+  ABSENT
+}
+
+/// One member on one site for one day. History = rows in the past; planning = rows in the future.
+model Assignment {
+  id            String           @id @default(cuid())
+  projectId     String
+  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberId      String
+  member        TeamMember       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// Stored at midday IST so it groups cleanly by calendar day
+  date          DateTime
+  status        AssignmentStatus @default(PLANNED)
+  note          String?
+  createdByName String?
+  createdAt     DateTime         @default(now())
+
+  @@unique([memberId, date, projectId])
+  @@index([date])
+  @@index([projectId])
+}
+
+/// Field log entry — the "current site status" feed.
+model SiteUpdate {
+  id            String      @id @default(cuid())
+  projectId     String
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberId      String?
+  member        TeamMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  note          String
+  createdByName String?
+  createdAt     DateTime    @default(now())
+
+  @@index([projectId, createdAt])
 }

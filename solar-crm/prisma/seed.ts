@@ -201,7 +201,49 @@ async function seedDemo() {
       },
     });
   });
-  void p2;
+  // ── Field team: crew, a sample phone login, 3 weeks of history and 2 weeks of plan ──
+  const crew = await Promise.all(
+    [
+      ["Murugan", "Supervisor", 1200, "9840100001"],
+      ["Selvam", "Installer", 900, "9840100002"],
+      ["Ramesh", "Installer", 900, "9840100003"],
+      ["Anbu", "Electrician", 1000, "9840100004"],
+      ["Karthi", "Helper", 700, "9840100005"],
+      ["Vignesh", "Welder / fabricator", 950, "9840100006"],
+    ].map(([name, role, rate, phone]) => prisma.teamMember.create({ data: { name: name as string, role: role as string, dailyRate: rate as number, phone: phone as string } })),
+  );
+  const crewUser = await prisma.user.create({ data: { email: "crew@sanacara.com", name: "Selvam", role: "FIELD", passwordHash: await bcrypt.hash("crew12345", 10) } });
+  await prisma.teamMember.update({ where: { id: crew[1].id }, data: { userId: crewUser.id } });
+
+  const noon = (n: number) => {
+    const d = new Date(Date.now() + n * DAY);
+    return new Date(`${new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Kolkata" }).format(d)}T12:00:00+05:30`);
+  };
+  const isSunday = (d: Date) => new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Kolkata" }).format(d) === "Sun";
+  const rows: { projectId: string; memberId: string; date: Date; status: "DONE" | "PLANNED" | "ABSENT"; note: string | null; createdByName: string }[] = [];
+  const put = (proj: string, members: number[], from: number, to: number, note: string | null) => {
+    for (let n = from; n <= to; n++) {
+      const d = noon(n);
+      if (isSunday(d)) continue;
+      for (const mi of members) rows.push({ projectId: proj, memberId: crew[mi].id, date: d, status: n < 0 ? (mi === 4 && n === -3 ? "ABSENT" : "DONE") : "PLANNED", note: n === from ? note : null, createdByName: "Admin" });
+    }
+  };
+  // completed 3 kW job (finished ~5 days ago)
+  put(p1.proj.id, [0, 1, 2], -14, -12, "Structure erection");
+  put(p1.proj.id, [1, 3], -11, -6, "Panels, inverter, cabling & commissioning");
+  // running 5 kW job
+  put(p2.proj.id, [0, 2, 5], -4, -2, "Structure fabrication & erection");
+  put(p2.proj.id, [0, 2, 4], -1, 0, "Panel mounting");
+  put(p2.proj.id, [0, 2, 3], 1, 3, "Inverter, ACDB/DCDB, cabling — electrician on site");
+  put(p2.proj.id, [3], 5, 5, "Net-meter inspection with TNEB");
+  await prisma.assignment.createMany({ data: rows, skipDuplicates: true });
+  await prisma.siteUpdate.createMany({
+    data: [
+      { projectId: p2.proj.id, memberId: crew[0].id, note: "Structure erected on both roof sections. Panels delivered and stacked in the car park.", createdByName: "Murugan", createdAt: new Date(Date.now() - 2 * DAY) },
+      { projectId: p2.proj.id, memberId: crew[1].id, note: "9 panels mounted. Customer asked to move the inverter to the utility wall — fine, cable +8 m.", createdByName: "Selvam", createdAt: new Date(Date.now() - 4 * 3600000) },
+      { projectId: p1.proj.id, memberId: crew[0].id, note: "Commissioned, customer trained on the app. Net-meter application filed.", createdByName: "Murugan", createdAt: new Date(Date.now() - 6 * DAY) },
+    ],
+  });
 
   await prisma.expense.createMany({
     data: [
@@ -211,7 +253,7 @@ async function seedDemo() {
       { date: daysAgo(3), category: "UTILITIES", amount: 2400, vendor: "Internet & phone" },
     ],
   });
-  console.log("Demo data loaded (fictional customers).");
+  console.log("Demo data loaded (fictional customers). Sample crew login: crew@sanacara.com / crew12345");
 }
 
 async function main() {

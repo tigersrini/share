@@ -119,7 +119,7 @@ export async function createUser(_prev: ActionState, fd: FormData): Promise<Acti
   if (!name) return fail("Enter a name.");
   if (password.length < 8) return fail("Password must be at least 8 characters.");
   try {
-    await prisma.user.create({ data: { email, name, role: oneOf(str(fd, "role"), ["ADMIN", "STAFF"] as const, "STAFF"), passwordHash: await bcrypt.hash(password, 10) } });
+    await prisma.user.create({ data: { email, name, role: oneOf(str(fd, "role"), ["ADMIN", "STAFF", "FIELD"] as const, "STAFF"), passwordHash: await bcrypt.hash(password, 10) } });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") return fail("A user with that email already exists.");
     throw e;
@@ -131,7 +131,7 @@ export async function createUser(_prev: ActionState, fd: FormData): Promise<Acti
 export async function updateUser(fd: FormData): Promise<void> {
   const me = await requireAdmin();
   const id = str(fd, "id");
-  const role = oneOf(str(fd, "role"), ["ADMIN", "STAFF"] as const, "STAFF");
+  const role = oneOf(str(fd, "role"), ["ADMIN", "STAFF", "FIELD"] as const, "STAFF");
   const active = str(fd, "active") === "true";
   if (id === me.userId && (!active || role !== "ADMIN")) throw new Error("You cannot deactivate or demote your own account.");
   await prisma.user.update({ where: { id }, data: { role, active } });

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { requireStaff } from "@/lib/auth";
 import { fail, str, type ActionState } from "@/lib/form";
 import { fromDateInput } from "@/lib/format";
 import { computeInvoice } from "@/lib/gst";
@@ -12,7 +12,7 @@ import { nextInvoiceNumber } from "@/lib/numbering";
 import { getSettings } from "@/lib/settings";
 
 export async function saveInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   let raw: unknown;
   try {
     raw = JSON.parse(str(fd, "payload"));
@@ -81,7 +81,7 @@ export async function saveInvoice(_prev: ActionState, fd: FormData): Promise<Act
 }
 
 export async function cancelInvoice(fd: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const id = str(fd, "id");
   const inv = await prisma.invoice.findUnique({ where: { id } });
   if (!inv || inv.status === "CANCELLED") return;

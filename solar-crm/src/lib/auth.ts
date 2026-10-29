@@ -13,7 +13,7 @@ function getSecretKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-export type UserRole = "ADMIN" | "STAFF";
+export type UserRole = "ADMIN" | "STAFF" | "FIELD";
 
 export interface SessionPayload {
   userId: string;
@@ -37,7 +37,7 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
       typeof payload.userId !== "string" ||
       typeof payload.email !== "string" ||
       typeof payload.name !== "string" ||
-      (payload.role !== "ADMIN" && payload.role !== "STAFF")
+      (payload.role !== "ADMIN" && payload.role !== "STAFF" && payload.role !== "FIELD")
     ) {
       return null;
     }
@@ -62,9 +62,16 @@ export async function requireSession(): Promise<SessionPayload> {
   return session;
 }
 
+/** For office Server Actions (everything with money, customers or settings): crew logins are refused. */
+export async function requireStaff(): Promise<SessionPayload> {
+  const session = await requireSession();
+  if (session.role === "FIELD") throw new Error("Not available for field logins.");
+  return session;
+}
+
 /** For admin-only Server Actions. Throws so the action fails loudly for non-admins. */
 export async function requireAdmin(): Promise<SessionPayload> {
-  const session = await requireSession();
+  const session = await requireStaff();
   if (session.role !== "ADMIN") throw new Error("Only an admin can do this.");
   return session;
 }

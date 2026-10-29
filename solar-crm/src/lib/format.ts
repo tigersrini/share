@@ -155,3 +155,13 @@ export function amountInWords(amount: number): string {
 export function nowMs(): number {
   return Date.now();
 }
+
+/** "5 min ago", "3 h ago", "2 days ago" — for activity feeds. */
+export function timeAgo(date: Date | string, from: number = nowMs()): string {
+  const s = Math.max(0, Math.round((from - new Date(date).getTime()) / 1000));
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  const d = Math.floor(s / 86400);
+  return d === 1 ? "yesterday" : d < 30 ? `${d} days ago` : formatDate(date);
+}

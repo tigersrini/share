@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { csvResponse } from "@/lib/csv";
 import { computeInvoice } from "@/lib/gst";
-import { financialYearStart, formatDate, startOfMonth } from "@/lib/format";
+import { endOfDay, financialYearStart, formatDate, fromDateInput, startOfDay, startOfMonth } from "@/lib/format";
+import { ASSIGNMENT_LABEL } from "@/lib/team";
 import { EXPENSE_LABEL, ITEM_CATEGORY_LABEL, PAYMENT_MODE_LABEL } from "@/lib/labels";
 
 export const runtime = "nodejs";
@@ -52,6 +53,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
     return csvResponse(`payments-${stamp}.csv`, [
       ["Date", "Customer", "Amount", "Mode", "Reference", "Project", "Invoice"],
       ...rows.map((p) => [formatDate(p.date), p.customer.name, p.amount, PAYMENT_MODE_LABEL[p.mode], p.reference, p.project?.code, p.invoice?.number]),
+    ]);
+  }
+
+  if (kind === "crew") {
+    const sp = req.nextUrl.searchParams;
+    const f = fromDateInput(sp.get("from") ?? "");
+    const t = fromDateInput(sp.get("to") ?? "");
+    const rows = await prisma.assignment.findMany({
+      where: {
+        ...(f || t ? { date: { ...(f ? { gte: startOfDay(f) } : {}), ...(t ? { lte: endOfDay(t) } : {}) } } : {}),
+        ...(sp.get("memberId") ? { memberId: sp.get("memberId")! } : {}),
+        ...(sp.get("projectId") ? { projectId: sp.get("projectId")! } : {}),
+      },
+      orderBy: [{ date: "desc" }],
+      include: { member: { select: { name: true, role: true, dailyRate: true } }, project: { select: { code: true, customer: { select: { name: true } } } } },
+    });
+    return csvResponse(`crew-history-${stamp}.csv`, [
+      ["Date", "Member", "Role", "Site", "Customer", "Status", "Daily wage", "Note"],
+      ...rows.map((r) => [formatDate(r.date), r.member.name, r.member.role, r.project.code, r.project.customer.name, ASSIGNMENT_LABEL[r.status], r.status === "DONE" ? r.member.dailyRate : 0, r.note]),
     ]);
   }
 

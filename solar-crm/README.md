@@ -14,6 +14,9 @@ stack as `garage-billing`, so it deploys the same way.
 | **Pipeline** | Board view of every stage with quote value per column |
 | **Solar calculator** | Monthly units or bill → recommended kW, panel count, roof area, generation, PM Surya Ghar + state subsidy, net cost, payback, 25-year savings, CO₂. One click to create a quotation or send a WhatsApp summary |
 | **Quotations** | Auto-numbered (`SSS/EPC/26-27/023`), editable BOM / makes / commercials / payment terms. Internal unit costs give a live margin (never printed). PDF follows your existing proposal layout (cover, letter, scope, BOM, makes, commercials, subsidy documents, T&C, bank) plus an optional "Your savings" page |
+| **Sites** | Live board of every running job: stage, checklist progress, who is on site today, latest field update, next planned crew, target date, one-tap call / Google Maps directions. Site page has the field log, checklist, crew attendance and crew history |
+| **Schedule** | Planning calendar — month grid on PC, day-by-day agenda on phone. Assign several people to a site over a date range (Sundays skippable), see who is free on any day, mark present / absent. Double-booking across sites is caught and reported |
+| **Team** | Roster with role, phone, daily wage and today's status; member profile with upcoming plan, full site history, days worked and wage estimate; **Who worked where** report (by person / site / date range) with CSV export |
 | **Projects** | Accepted quote → project with checklist, payment milestones, subsidy tracking, stock issued, direct expenses and live margin |
 | **Invoices** | GST tax invoices (`SS/26-27/014`) in your existing format: HSN/SAC lines, CGST+SGST or IGST by place of supply, HSN tax summary, amount in words, bank details. Builds from a quotation (splits a GST-inclusive package into 70 % supply @ 5 % / 30 % services @ 18 %, configurable) |
 | **Inventory** | Items by category, weighted-average cost on every purchase, suppliers, stock history, low-stock alerts, stock value dashboard, CSV export. Issuing stock to a project charges its cost to that project |
@@ -48,6 +51,14 @@ invoice `SS/26-27/014`. Change this any time in *Settings → Document numbering
 4. Add the domain `energy.sanacara.com` (or a sub-path/sub-domain such as `crm.sanacara.com` if
    `energy.sanacara.com` is already serving your website) in Vercel → Domains.
 
+### Crew logins (phones)
+
+Create a user with the **Field crew** role (Settings → Staff accounts) and link it to the team member
+(Team → member → *Phone login*). Crew land on **My jobs** — today's site with address, directions,
+customer call button and "I'm on site" — and can only open *My jobs*, *Sites* and *Schedule*. They can
+post site updates, tick the checklist and mark attendance, but **never see quotations, invoices,
+payments, costs, customers or settings** (enforced in `src/proxy.ts` and again in every server action).
+
 Every page and API route requires a login (`src/proxy.ts`); there is no public access and no
 self-signup. PDFs are also behind login — download and send them (WhatsApp buttons open the
 customer's chat with a pre-filled message).
@@ -68,6 +79,6 @@ customer's chat with a pre-filled message).
 
 ## Data model
 
-`prisma/schema.prisma`: `Customer`/`Activity` (CRM), `Quote`/`QuoteLine`, `Project`/`ProjectTask`,
+`prisma/schema.prisma`: `Customer`/`Activity` (CRM), `TeamMember`/`Assignment` (one row per person per site per day)/`SiteUpdate` (field team), `Quote`/`QuoteLine`, `Project`/`ProjectTask`,
 `Invoice`/`InvoiceLine`, `Payment`, `Item`/`StockMovement`/`Supplier`, `Expense`, `User`, `Setting`
 (JSON), `Counter` (per-financial-year numbering).

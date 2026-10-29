@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, requireSession } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { bool, fail, num, oneOf, optNum, optStr, str, type ActionState } from "@/lib/form";
 import { recordMovement } from "@/lib/stock";
 import { ITEM_CATEGORIES } from "@/lib/labels";
@@ -33,7 +33,7 @@ function refresh(id?: string) {
 }
 
 export async function createItem(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const data = readItem(fd);
   if (!data.name) return fail("Item name is required.");
   if (!data.sku) return fail("SKU / code is required.");
@@ -60,7 +60,7 @@ export async function createItem(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function updateItem(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const id = str(fd, "id");
   const data = readItem(fd);
   if (!data.name || !data.sku) return fail("Name and SKU are required.");
@@ -80,7 +80,7 @@ export async function updateItem(_prev: ActionState, fd: FormData): Promise<Acti
 
 /** Goods received from a supplier. Recalculates the weighted-average cost. */
 export async function receiveStock(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const itemId = str(fd, "itemId");
   const qty = num(fd, "qty");
   const unitCost = num(fd, "unitCost", -1);
@@ -98,7 +98,7 @@ export async function receiveStock(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function adjustStock(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const session = await requireSession();
+  const session = await requireStaff();
   const itemId = str(fd, "itemId");
   const qty = num(fd, "qty");
   const note = str(fd, "note");
@@ -116,7 +116,7 @@ export async function adjustStock(_prev: ActionState, fd: FormData): Promise<Act
 }
 
 export async function createSupplier(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await requireSession();
+  await requireStaff();
   const name = str(fd, "name");
   if (!name) return fail("Supplier name is required.");
   await prisma.supplier.create({ data: { name, phone: optStr(fd, "phone"), email: optStr(fd, "email"), gstin: optStr(fd, "gstin"), address: optStr(fd, "address"), notes: optStr(fd, "notes") } });
