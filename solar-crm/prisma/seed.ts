@@ -212,8 +212,13 @@ async function seedDemo() {
       ["Vignesh", "Welder / fabricator", 950, "9840100006"],
     ].map(([name, role, rate, phone]) => prisma.teamMember.create({ data: { name: name as string, role: role as string, dailyRate: rate as number, phone: phone as string } })),
   );
-  const crewUser = await prisma.user.create({ data: { email: "crew@sanacara.com", name: "Selvam", role: "FIELD", passwordHash: await bcrypt.hash("crew12345", 10) } });
-  await prisma.teamMember.update({ where: { id: crew[1].id }, data: { userId: crewUser.id } });
+  // Locally the sample crew login is crew@sanacara.com / crew12345. On a hosted deploy (VERCEL) the password
+  // must come from DEMO_CREW_PASSWORD, otherwise no crew login is created — never ship a known password.
+  const crewPassword = process.env.DEMO_CREW_PASSWORD ?? (process.env.VERCEL ? null : "crew12345");
+  if (crewPassword) {
+    const crewUser = await prisma.user.create({ data: { email: "crew@sanacara.com", name: "Selvam", role: "FIELD", passwordHash: await bcrypt.hash(crewPassword, 10) } });
+    await prisma.teamMember.update({ where: { id: crew[1].id }, data: { userId: crewUser.id } });
+  }
 
   const noon = (n: number) => {
     const d = new Date(Date.now() + n * DAY);
@@ -253,7 +258,7 @@ async function seedDemo() {
       { date: daysAgo(3), category: "UTILITIES", amount: 2400, vendor: "Internet & phone" },
     ],
   });
-  console.log("Demo data loaded (fictional customers). Sample crew login: crew@sanacara.com / crew12345");
+  console.log("Demo data loaded (fictional customers). Sample crew login: crew@sanacara.com (see DEMO_CREW_PASSWORD / seed notes)");
 }
 
 async function main() {
