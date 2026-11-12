@@ -1,0 +1,36 @@
+Ref,Qty,Description,Candidate part,Notes (ALL candidates: verify stock/footprint/limits before ordering)
+J_PI,1,2x20 female header 2.54mm (bottom side),generic 2x20 female / tall stacking,Tall if using Pi 5 Active Cooler
+J1,1,12V input screw terminal 5.08mm 2-pos >=10A,generic,
+F1,1,Fast SMD fuse 7A 32V,generic,
+Q1,1,P-MOSFET reverse protection >=30V <=10mOhm,generic,Source toward load; 15V zener gate clamp
+D1,1,TVS stand-off >=13V,SMBJ13A class,Clamp must be below buck abs-max VIN and INA219 26V
+C_IN,3,Input caps: 2x22uF/25V ceramic + 1x220uF/25V,generic,
+R_SH,1,Shunt 10mOhm 1% >=3W 2512 Kelvin,Bourns CSS2H-2512R family,
+U2,1,INA219 current monitor SOT-23-8,INA219AIDCNR,
+R_F,2,10 Ohm 1% 0603 INA219 sense filter,generic,
+C_F,1,0.1uF INA219 sense filter,generic,
+U1,1,5V 12A synchronous buck 18-pin QFN,TPS56C215RNNR,Pin table/passives from datasheet (not verified here)
+L1,1,Power inductor for 12V->5.1V @10A,per datasheet design example,Isat >= 14A
+R_FB,2,Feedback divider 75k / 10k 0.1%,generic,Confirm Vref=0.6V first
+C_OUT,6,Output caps ceramic + >=100uF bulk,per datasheet,
+J5,1,5V AUX screw terminal 2-pos,generic,
+F3,1,AUX 5V resettable fuse,generic,Size to AUX load
+Q2,1,N-MOSFET logic-level SOT-23,AO3400A,
+R_G,1,100 Ohm gate resistor,generic,
+R_PD,1,100k gate pull-down,generic,
+F2,1,PTC 2A for LED branch,generic,
+J_LED,1,12V LED screw terminal 2-pos,generic,
+D_FW,1,SS14 Schottky (DNP default),SS14,Inductive loads only
+U3,1,Level shifter buffer SOT-23-5,SN74AHCT1G125DBVR,
+R_DIN,1,330 Ohm WS2812 data series,generic,
+LED1,1,Addressable RGB LED 5050,WS2812B / SK6812,
+J_CHAIN,1,1x3 header 2.54mm RGB chain out,generic,
+C_CH,1,220-470uF/10V strip inrush,generic,
+J4,1,1x4 header 2.54mm HX711,generic,
+R_HX,2,330 Ohm series on DT and SCK,generic,
+R_SCK,1,10k pull-down on HX_SCK,generic,
+J_GPS,1,1x5 socket 2.54mm GPS breakout,generic,Pin order to match your module
+J_ANT,1,U.FL / IPEX connector (external antenna),generic,
+FB_GPS,1,Ferrite bead on +3V3_GPS,generic,
+U4,1,HAT ID EEPROM (optional),CAT24C32,Optional
+SJ,6,Solder jumpers: INA219 addr A0/A1; RGB data GPIO12/GPIO10; EEPROM WP,n/a,

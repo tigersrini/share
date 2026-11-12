@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -8 73 76" width="876" height="912" font-family="Helvetica, Arial, sans-serif">
+  <style>
+    .board { fill:#1f5f3a; stroke:#0d3b22; stroke-width:0.3 }
+    .hdr   { fill:#222; stroke:#000; stroke-width:0.15 }
+    .pin   { fill:#d4af37 }
+    .hole  { fill:#f4f4f4; stroke:#888; stroke-width:0.2 }
+    .kout  { fill:none; stroke:#ffcc00; stroke-width:0.15; stroke-dasharray:0.6 0.4 }
+    .blk   { stroke:#111; stroke-width:0.2; opacity:0.92 }
+    .t     { font-size:1.7px; fill:#111 }
+    .ts    { font-size:1.25px; fill:#111 }
+    .tw    { font-size:1.6px; fill:#fff }
+    .title { font-size:2.4px; font-weight:bold; fill:#111 }
+    .dim   { font-size:1.2px; fill:#555 }
+  </style>
+  <text class="title" x="-3" y="-4.5">Pi 5 HAT — top-side placement (floorplan, not a routed layout)</text>
+  <text class="dim" x="-3" y="-2.2">65 x 56 mm, GPIO header on the bottom side along the top edge, viewed from above</text>
+
+  <!-- board -->
+  <rect class="board" x="0" y="0" width="65" height="56" rx="3"/>
+
+  <!-- 2x20 header (bottom side, shown dashed outline + pins) -->
+  <rect class="hdr" x="7.1" y="1" width="50.8" height="5.08" opacity="0.35"/>
+  <text class="tw" x="32.5" y="8.2" text-anchor="middle">2x20 GPIO header (underside)</text>
+
+  <g fill="#d4af37">
+    <!-- row 1 y=2.23, row 2 y=4.77 ; x from 8.37 step 2.54 -->
+    <circle cx="8.37" cy="2.23" r="0.45"/><circle cx="10.91" cy="2.23" r="0.45"/><circle cx="13.45" cy="2.23" r="0.45"/><circle cx="15.99" cy="2.23" r="0.45"/><circle cx="18.53" cy="2.23" r="0.45"/><circle cx="21.07" cy="2.23" r="0.45"/><circle cx="23.61" cy="2.23" r="0.45"/><circle cx="26.15" cy="2.23" r="0.45"/><circle cx="28.69" cy="2.23" r="0.45"/><circle cx="31.23" cy="2.23" r="0.45"/><circle cx="33.77" cy="2.23" r="0.45"/><circle cx="36.31" cy="2.23" r="0.45"/><circle cx="38.85" cy="2.23" r="0.45"/><circle cx="41.39" cy="2.23" r="0.45"/><circle cx="43.93" cy="2.23" r="0.45"/><circle cx="46.47" cy="2.23" r="0.45"/><circle cx="49.01" cy="2.23" r="0.45"/><circle cx="51.55" cy="2.23" r="0.45"/><circle cx="54.09" cy="2.23" r="0.45"/><circle cx="56.63" cy="2.23" r="0.45"/>
+    <circle cx="8.37" cy="4.77" r="0.45"/><circle cx="10.91" cy="4.77" r="0.45"/><circle cx="13.45" cy="4.77" r="0.45"/><circle cx="15.99" cy="4.77" r="0.45"/><circle cx="18.53" cy="4.77" r="0.45"/><circle cx="21.07" cy="4.77" r="0.45"/><circle cx="23.61" cy="4.77" r="0.45"/><circle cx="26.15" cy="4.77" r="0.45"/><circle cx="28.69" cy="4.77" r="0.45"/><circle cx="31.23" cy="4.77" r="0.45"/><circle cx="33.77" cy="4.77" r="0.45"/><circle cx="36.31" cy="4.77" r="0.45"/><circle cx="38.85" cy="4.77" r="0.45"/><circle cx="41.39" cy="4.77" r="0.45"/><circle cx="43.93" cy="4.77" r="0.45"/><circle cx="46.47" cy="4.77" r="0.45"/><circle cx="49.01" cy="4.77" r="0.45"/><circle cx="51.55" cy="4.77" r="0.45"/><circle cx="54.09" cy="4.77" r="0.45"/><circle cx="56.63" cy="4.77" r="0.45"/>
+  </g>
+  <text class="ts" x="8.37" y="-0.6" fill="#111">pin 1</text>
+
+  <!-- mounting holes -->
+  <circle class="hole" cx="3.5" cy="3.5" r="1.25"/>
+  <circle class="hole" cx="61.5" cy="3.5" r="1.25"/>
+  <circle class="hole" cx="3.5" cy="52.5" r="1.25"/>
+  <circle class="hole" cx="61.5" cy="52.5" r="1.25"/>
+
+  <!-- GPS (top-left, farthest from USB3/Ethernet side) -->
+  <rect class="blk" fill="#7fb3ff" x="3" y="10" width="27" height="13"/>
+  <text class="t" x="16.5" y="14.5" text-anchor="middle">GPS socket J_GPS (1x5)</text>
+  <text class="ts" x="16.5" y="17" text-anchor="middle">3V3 / GND / TX / RX / PPS</text>
+  <rect class="blk" fill="#cfe3ff" x="23" y="19.2" width="5" height="2.8"/>
+  <text class="ts" x="25.5" y="21.1" text-anchor="middle">U.FL</text>
+  <rect class="kout" x="2" y="9" width="29" height="15"/>
+  <text class="ts" x="3" y="25.6" fill="#555">RF keep-out, no switchers nearby</text>
+
+  <!-- RGB LED block (top-right) -->
+  <rect class="blk" fill="#f58ad6" x="35" y="10" width="27" height="10.5"/>
+  <text class="t" x="48.5" y="13.2" text-anchor="middle" style="font-size:1.45px">WS2812 RGB + AHCT level shifter</text>
+  <text class="ts" x="48.5" y="16" text-anchor="middle">GPIO12 -> 74AHCT1G125 -> DIN</text>
+  <rect class="blk" fill="#ffd0f2" x="52.5" y="17.4" width="8.5" height="2.2"/>
+  <text class="ts" x="56.75" y="19.05" text-anchor="middle">J_CHAIN 1x3</text>
+
+  <!-- HX711 -->
+  <rect class="blk" fill="#ffd27a" x="35" y="22" width="12" height="4"/>
+  <text class="ts" x="41" y="24.6" text-anchor="middle">J4 HX711 1x4</text>
+
+  <!-- INA219 + shunt -->
+  <rect class="blk" fill="#a9e5a0" x="3" y="28" width="22" height="8"/>
+  <text class="t" x="14" y="31.8" text-anchor="middle">INA219 + 10 mOhm shunt</text>
+  <text class="ts" x="14" y="34.2" text-anchor="middle">Kelvin sense, 0x40</text>
+
+  <!-- Input J1 and protection -->
+  <rect class="blk" fill="#ff9a9a" x="1.5" y="37" width="9" height="11"/>
+  <text class="ts" x="6" y="41.5" text-anchor="middle">J1 12V</text>
+  <text class="ts" x="6" y="43.4" text-anchor="middle">IN</text>
+  <rect class="blk" fill="#ffc6c6" x="11" y="37" width="11" height="5.5"/>
+  <text class="ts" x="16.5" y="40.3" text-anchor="middle">F1 / Q1 / TVS</text>
+
+  <!-- Buck -->
+  <rect class="blk" fill="#ffb347" x="11" y="43.5" width="28" height="11"/>
+  <text class="t" x="25" y="48.4" text-anchor="middle">5V / 10A BUCK (TPS56C215)</text>
+  <text class="ts" x="25" y="51" text-anchor="middle">IC + inductor + caps, thermal vias + 2oz</text>
+
+  <!-- AUX 5V -->
+  <rect class="blk" fill="#ffd27a" x="40.5" y="46" width="9" height="8"/>
+  <text class="ts" x="45" y="50" text-anchor="middle">J5 AUX 5V</text>
+
+  <!-- LED MOSFET + J_LED -->
+  <rect class="blk" fill="#ffe66b" x="51" y="33" width="12" height="15"/>
+  <text class="ts" x="57" y="37" text-anchor="middle">Q2 AO3400A</text>
+  <text class="ts" x="57" y="39" text-anchor="middle">GPIO18 gate</text>
+  <text class="ts" x="57" y="43.5" text-anchor="middle">J_LED 12V</text>
+  <text class="ts" x="57" y="45.4" text-anchor="middle">LED +/-</text>
+
+  <!-- annotations -->
+  <text class="dim" x="-3" y="58">Mounting holes: M2.5 at (3.5,3.5) (61.5,3.5) (3.5,52.5) (61.5,52.5).</text>
+  <text class="dim" x="-3" y="60">GPS sits away from the Pi 5 USB 3 / Ethernet side. Keep tall parts out of the FFC area per HAT+ spec. Illustrative only.</text>
+</svg>
