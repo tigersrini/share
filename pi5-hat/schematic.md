@@ -177,5 +177,5 @@ A0–A2 = GND, WP jumper. Not needed for function; required by the official HAT+
   from the top edge (see `floorplan.svg`).
 - The official Active Cooler sits under the HAT — use a tall header / standoffs and check clearance.
 - Keep out / avoid tall parts over the Pi's FFC connectors per the HAT+ mechanical spec.
-- 4-layer, 1.6 mm: L1 signal+power, L2 solid GND, L3 power/GND, L4 signal+power;
-  2 oz outer copper preferred for the 12 V and 5 V paths.
+- Stackup, copper weights and protection additions (5 V OVP eFuse, temperature sensor, ESD clamps)
+  are specified in [`production_spec.md`](production_spec.md) and supersede this section.

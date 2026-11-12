@@ -16,6 +16,7 @@ GPIO header.
 
 Files:
 
+- [`production_spec.md`](production_spec.md) — **rev B production/reliability spec**: stackup, protection (incl. 5 V OVP eFuse), derating, DFM/DFT, validation plan, and what is still needed to finish the layout
 - [`schematic.md`](schematic.md) — block-by-block netlist (what connects to what), values, notes
 - [`bom.csv`](bom.csv) — bill of materials with candidate part numbers
 - [`floorplan.svg`](floorplan.svg) — board outline, header, mounting holes, block placement
@@ -87,7 +88,7 @@ marginal for a 5 V WS2812 (VIH = 0.7 × VDD = 3.5 V).
 
 ### 4. 10 A on a 65 × 56 mm HAT is a thermal problem
 50 W out at ~90 % efficiency is ~5.5 W of loss. Plan for a 4-layer board, 2 oz
-outer copper if your fab offers it, big thermal pours/vias under the buck IC and
+outer copper if the QFN breakout rules allow (see `production_spec.md` §2), big thermal pours/vias under the buck IC and
 inductor, and airflow. Realistically expect to run **5–6 A continuous** without a
 fan; 10 A is a peak/short-duration figure unless you validate thermals.
 

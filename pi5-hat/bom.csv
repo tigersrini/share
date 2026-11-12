@@ -34,3 +34,7 @@ J_ANT,1,U.FL / IPEX connector (external antenna),generic,
 FB_GPS,1,Ferrite bead on +3V3_GPS,generic,
 U4,1,HAT ID EEPROM (optional),CAT24C32,Optional
 SJ,6,Solder jumpers: INA219 addr A0/A1; RGB data GPIO12/GPIO10; EEPROM WP,n/a,
+U5,1,5V output eFuse with OVP clamp ~5.7V and ~6A limit (rev B),TI TPS259xx / TPS25947 class,VERIFY ratings and pinout; protects Pi from buck failure
+U6,1,Digital temperature sensor I2C 0x48 (rev B),TMP117 class,Place beside buck inductor
+D_ESD,3,ESD/TVS array on off-board signals (rev B),generic low-capacitance TVS array,HX711 / RGB / GPS connectors
+TP,20,Test points 1.0mm round pads (rev B),n/a,See production_spec.md section 7
